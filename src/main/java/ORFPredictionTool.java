@@ -21,23 +21,29 @@ public class ORFPredictionTool {
     private static ArrayList<ORF> foundORFs = new ArrayList<ORF>();
 
     /**
-     * De main functon
+     * De main function calls all the other fucntions and catches exceptions.
      *
      * @param args
      */
     public static void main(String[] args) {
-        ArrayList<String> headaerAndSequence = readFile();
-        String RNAseq = transcribe(headaerAndSequence);
-        ArrayList<ArrayList<String>> startAndStopCodons = setStartAndStopCodons();
-        ArrayList<String> allReadingFrames = getAllReadingFrames(RNAseq);
-        getORFs(allReadingFrames.get(0), startAndStopCodons, "+1");
-        getORFs(allReadingFrames.get(1), startAndStopCodons, "+2");
-        getORFs(allReadingFrames.get(2), startAndStopCodons, "+3");
-        getORFs(allReadingFrames.get(3), startAndStopCodons, "-1");
-        getORFs(allReadingFrames.get(4), startAndStopCodons, "-2");
-        getORFs(allReadingFrames.get(5), startAndStopCodons, "-3");
-        Collections.sort(foundORFs);
-        System.out.println(foundORFs.size() );
+        try {
+            ArrayList<String> headerAndSequence = readFile();
+            checkDNAFASTA.check(headerAndSequence);
+            String RNAseq = transcribe(headerAndSequence);
+            ArrayList<ArrayList<String>> startAndStopCodons = setStartAndStopCodons();
+            ArrayList<String> allReadingFrames = getAllReadingFrames(RNAseq);
+            getORFs(allReadingFrames.get(0), startAndStopCodons, "+1");
+            getORFs(allReadingFrames.get(1), startAndStopCodons, "+2");
+            getORFs(allReadingFrames.get(2), startAndStopCodons, "+3");
+            getORFs(allReadingFrames.get(3), startAndStopCodons, "-1");
+            getORFs(allReadingFrames.get(4), startAndStopCodons, "-2");
+            getORFs(allReadingFrames.get(5), startAndStopCodons, "-3");
+            Collections.sort(foundORFs);
+        } catch (NotAnValidDNAFASTA ex){
+            System.out.println(ex);
+        } catch (IndexOutOfBoundsException ex){
+
+        }
     }
 
     /**
