@@ -18,33 +18,7 @@ import java.util.HashMap;
 
 public class ORFPredictionTool {
     private JFileChooser fileChooser;
-    private static ArrayList<ORF> foundORFs = new ArrayList<ORF>();
-
-    /**
-     * De main function calls all the other fucntions and catches exceptions.
-     *
-     * @param args
-     */
-    public static void main(String[] args) {
-        try {
-            ArrayList<String> headerAndSequence = readFile();
-            checkDNAFASTA.check(headerAndSequence);
-            String RNAseq = transcribe(headerAndSequence);
-            ArrayList<ArrayList<String>> startAndStopCodons = setStartAndStopCodons();
-            ArrayList<String> allReadingFrames = getAllReadingFrames(RNAseq);
-            getORFs(allReadingFrames.get(0), startAndStopCodons, "+1");
-            getORFs(allReadingFrames.get(1), startAndStopCodons, "+2");
-            getORFs(allReadingFrames.get(2), startAndStopCodons, "+3");
-            getORFs(allReadingFrames.get(3), startAndStopCodons, "-1");
-            getORFs(allReadingFrames.get(4), startAndStopCodons, "-2");
-            getORFs(allReadingFrames.get(5), startAndStopCodons, "-3");
-            Collections.sort(foundORFs);
-        } catch (NotAnValidDNAFASTA ex){
-            System.out.println(ex);
-        } catch (IndexOutOfBoundsException ex){
-
-        }
-    }
+    protected static ArrayList<ORF> foundORFs = new ArrayList<ORF>();
 
     /**
      * The function chooseFile makes it possible to select a FASTA file from the file system.
@@ -70,7 +44,7 @@ public class ORFPredictionTool {
      * @return headerAndSequence is a Arraylist containg the header and sequeunce of the chosen FASTA file.
      */
     public static ArrayList<String> readFile() {
-        String file = "C:\\Users\\brian\\Documents\\Jaar2\\Blok3\\Project informatica\\SD.fa";
+        String file = "C:\\Users\\brian\\Documents\\Jaar2\\Blok3\\Project informatica\\sequence (8).fasta.txt";
         ArrayList<String> headerAndSequence = new ArrayList<String>();
         try {
             BufferedReader inFile = new BufferedReader(new FileReader(file));
@@ -179,10 +153,7 @@ public class ORFPredictionTool {
         for (int i = 0; i < (readingFramesequence.length() / 3); i++) {
             String currentCodon = "";
             Integer currentPosition = (i * 3) + 1;
-            try {
-                currentCodon = String.valueOf(readingFramesequence.charAt(codonsFirstPosition)) + String.valueOf(readingFramesequence.charAt(codonsSecondPosition)) + String.valueOf(readingFramesequence.charAt(codonsThirtPosition));
-            } catch (StringIndexOutOfBoundsException ex) {
-            }
+            currentCodon = String.valueOf(readingFramesequence.charAt(codonsFirstPosition)) + String.valueOf(readingFramesequence.charAt(codonsSecondPosition)) + String.valueOf(readingFramesequence.charAt(codonsThirtPosition));
             if (startAndStopCodons.get(0).contains(currentCodon)) {
                 foundStartCodons.add(currentPosition);
             } else if (startAndStopCodons.get(1).contains(currentCodon)) {
@@ -191,11 +162,6 @@ public class ORFPredictionTool {
                         foundORFs.add(new ORF(foundStartCodons.get(0), currentPosition, readingFrame));
                     }
                 }
-                //for (int i2 = 0; i2 < foundStartCodons.size(); i2++) {
-                   // if (currentPosition - foundStartCodons.get(i2) > 100) {
-                     //   foundORFs.add(new ORF(foundStartCodons.get(i2), currentPosition, readingFrame));
-                    //}
-               // }
                 foundStartCodons.clear();
             }
             codonsFirstPosition += 3;
