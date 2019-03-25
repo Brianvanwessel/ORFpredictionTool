@@ -1,5 +1,3 @@
-package com.mycompany.database;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -35,7 +33,6 @@ public class Database {
      * @throws SQLException
      */
     public static ResultSet checkDatabaseInfo() throws ClassNotFoundException, SQLException {
-       
         String inputheader = ">A25";
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection con = DriverManager.getConnection(

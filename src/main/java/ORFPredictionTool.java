@@ -40,14 +40,15 @@ public class ORFPredictionTool {
 
     /**
      * The function readFile extracts the header and sequence of the chosen FASTA file.
-     *
+     * @param filepath A String containing the path of the chosen FAST file.
      * @return headerAndSequence is a Arraylist containg the header and sequeunce of the chosen FASTA file.
+     * @throws FileNotFoundException
+     * @throws IOException
      */
-    public static ArrayList<String> readFile() {
-        String file = "C:\\Users\\brian\\Documents\\Jaar2\\Blok3\\Project informatica\\sequence (8).fasta.txt";
+    public ArrayList<String> readFile(String filepath) throws FileNotFoundException,IOException {
         ArrayList<String> headerAndSequence = new ArrayList<String>();
         try {
-            BufferedReader inFile = new BufferedReader(new FileReader(file));
+            BufferedReader inFile = new BufferedReader(new FileReader(filepath));
             String line;
             String[] splitline;
             String sequentie = "";
@@ -62,20 +63,21 @@ public class ORFPredictionTool {
             headerAndSequence.add(sequentie.toUpperCase());
             inFile.close();
         } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
+            throw new FileNotFoundException("Select a valid File");
         } catch (IOException ex) {
-            ex.printStackTrace();
+            throw new IOException("Select a valid File");
         }
         return headerAndSequence;
     }
 
     /**
      * The function transcribe transcribes the DNA sequence from the chosen FASTA file.
-     *
      * @param headerAndSequence is an Arraylist containing the header and sequeunce of the chosen FASTA file.
      * @return RNAseq is a String containg the transcrived DNA sequence from the chosen FASTA file.
+     * @throws IllegalSymbolException
+     * @throws IllegalAlphabetException
      */
-    public static String transcribe(ArrayList<String> headerAndSequence) {
+    public static String transcribe(ArrayList<String> headerAndSequence) throws IllegalSymbolException,IllegalAlphabetException {
         String RNAseq = "";
         try {
             SymbolList symL = DNATools.createDNA(headerAndSequence.get(1));
@@ -83,31 +85,12 @@ public class ORFPredictionTool {
             RNAseq = symL.seqString().toUpperCase();
         } catch (IllegalSymbolException ex) {
             //this will happen if you try and make the DNA seq using non IUB symbols
-            ex.printStackTrace();
+            throw new IllegalSymbolException("Give an valid DNA sequence");
         } catch (IllegalAlphabetException ex) {
             //this will happen if you try and transcribe a non DNA SymbolList
-            ex.printStackTrace();
+            throw new IllegalAlphabetException("Give an valid DNA sequence");
         }
         return RNAseq;
-    }
-
-    /**
-     * The function setStartAndStopCodons makes an arraylist for the possible start and stop codons.
-     *
-     * @return startAndStopCodons is an Arrayist containing 2 arraylist with the possible start an stop codons.
-     */
-
-    public static ArrayList<ArrayList<String>> setStartAndStopCodons() {
-        ArrayList<ArrayList<String>> startandStopCodons = new ArrayList<ArrayList<String>>();
-        ArrayList<String> startCodons = new ArrayList<String>();
-        ArrayList<String> stopCodons = new ArrayList<String>();
-        startCodons.add("AUG");
-        startandStopCodons.add(startCodons);
-        stopCodons.add("UAG");
-        stopCodons.add("UAA");
-        stopCodons.add("UAG");
-        startandStopCodons.add(stopCodons);
-        return startandStopCodons;
     }
 
     /**
@@ -145,7 +128,7 @@ public class ORFPredictionTool {
      * @param startAndStopCodons is an Arrayist containing 2 arraylist with the possible start an stop codons.
      * @param readingFrame is a String containg the current readingFrame.
      */
-    public static void getORFs(String readingFramesequence, ArrayList<ArrayList<String>> startAndStopCodons, String readingFrame) {
+    public void getORFs(String readingFramesequence, ArrayList<ArrayList<String>> startAndStopCodons, String readingFrame) {
         Integer codonsFirstPosition = 0;
         Integer codonsSecondPosition = 1;
         Integer codonsThirtPosition = 2;

@@ -5,31 +5,23 @@
  */
 
 import javax.swing.*;
+import java.awt.event.ActionListener;
 
 /**
  *
  */
-public class ORFGUI {
-    private JPanel panel1;
-    private JTextField readFastaField;
-    private JButton uploadFastaButton;
-    private JButton zoekFile;
-    private JComboBox stopCodonComboBox;
-    private JComboBox startCodonComboBox;
-    private JLabel uploadFileStatusLabel;
-    private JButton findORFsButton;
-    private JComboBox chooseGeneComboBox;
-    private JButton blastButton;
-    private JTextArea resultArea;
-    private JComboBox minimalORFLength;
-
-    public static void main(String[] args) {
-        JFrame frame = new JFrame("ORFGUI");
-        frame.setContentPane(new ORFGUI().panel1);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setVisible(true);
-    }
-
+public class ORFGUI extends JFrame {
+    protected JPanel oRFPredictionToolPanel;
+    protected JTextField readFastaField;
+    protected JButton uploadFastaButton;
+    protected JButton zoekFileButton;
+    protected JComboBox stopCodonComboBox;
+    protected JComboBox startCodonComboBox;
+    protected JLabel uploadFileStatusLabel;
+    protected JButton findORFsButton;
+    protected JComboBox chooseGeneComboBox;
+    protected JButton blastButton;
+    protected JTextArea resultArea;
+    protected JComboBox minimalORFLengthComboBox;
 
 }
