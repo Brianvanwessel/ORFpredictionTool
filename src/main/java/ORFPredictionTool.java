@@ -122,13 +122,32 @@ public class ORFPredictionTool {
         return allReadingFrames;
     }
 
+    public static ArrayList<String> setCodons(String selectedCodons){
+        ArrayList<String> codons = new ArrayList<String>();
+        String[] splitCodons = selectedCodons.split(", ");
+        for(int i = 0; i< splitCodons.length;i++){
+            codons.add(splitCodons[i]);
+        }
+
+        return codons;
+    }
+
+    public ArrayList<ArrayList<String>> combineStartandStopCodons(ArrayList<String> startCodons,ArrayList<String> stopCodons){
+        ArrayList<ArrayList<String>> startAndStopCodons = new ArrayList<ArrayList<String>>();
+        startAndStopCodons.add(startCodons);
+        startAndStopCodons.add(stopCodons);
+        return startAndStopCodons;
+    }
+
+
+
     /**
      * The function searches possible ORFs in a readingframe and makes an ORF object for each ORF.
      * @param readingFramesequence is a String of the sequence of a reading frame.
      * @param startAndStopCodons is an Arrayist containing 2 arraylist with the possible start an stop codons.
      * @param readingFrame is a String containg the current readingFrame.
      */
-    public void getORFs(String readingFramesequence, ArrayList<ArrayList<String>> startAndStopCodons, String readingFrame) {
+    public void getORFs(String readingFramesequence, ArrayList<ArrayList<String>> startAndStopCodons, String readingFrame,Integer minmalORFSize) {
         Integer codonsFirstPosition = 0;
         Integer codonsSecondPosition = 1;
         Integer codonsThirtPosition = 2;
@@ -141,7 +160,7 @@ public class ORFPredictionTool {
                 foundStartCodons.add(currentPosition);
             } else if (startAndStopCodons.get(1).contains(currentCodon)) {
                 if(foundStartCodons.size() > 1) {
-                    if (currentPosition - foundStartCodons.get(0) > 100) {
+                    if (currentPosition - foundStartCodons.get(0) > minmalORFSize) {
                         foundORFs.add(new ORF(foundStartCodons.get(0), currentPosition, readingFrame));
                     }
                 }

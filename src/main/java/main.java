@@ -1,13 +1,12 @@
 import org.biojava.bio.symbol.IllegalAlphabetException;
 import org.biojava.bio.symbol.IllegalSymbolException;
-
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 
 /**
@@ -18,7 +17,9 @@ import java.util.Collections;
 public class main extends ORFGUI implements ActionListener {
 
     ORFPredictionTool orfPredict = new ORFPredictionTool();
+    Database database = new Database();
     ArrayList<String> allReadingFrames = new ArrayList<String>();
+    ArrayList<String> headerAndSequence = new ArrayList<String>();
     String filePath = "";
     /**
      * De main function calls all the other fucntions and catches exceptions.
@@ -55,16 +56,14 @@ public class main extends ORFGUI implements ActionListener {
             readFastaField.setText(filePath);
         }
         if (e.getSource() == uploadFastaButton){
-            ArrayList<String> headerAndSequence = new ArrayList<String>();
+            findORFsButton.setEnabled(true);
             String file = readFastaField.getText();
             try{
                 headerAndSequence = orfPredict.readFile(file);
                 checkDNAFASTA.check(headerAndSequence);
-                String RNAseq = ORFPredictionTool.transcribe(headerAndSequence);
-                allReadingFrames.addAll(ORFPredictionTool.getAllReadingFrames(RNAseq));
-                uploadFileStatusLabel.setText("done");
-                zoekFileButton.setEnabled(false);
-                uploadFastaButton.setEnabled(false);
+                    String RNAseq = ORFPredictionTool.transcribe(headerAndSequence);
+                    allReadingFrames.addAll(ORFPredictionTool.getAllReadingFrames(RNAseq));
+                    uploadFileStatusLabel.setText("done");
             }catch (NotAnValidDNAFASTA ex){
 
             } catch (FileNotFoundException ex) {
@@ -78,30 +77,49 @@ public class main extends ORFGUI implements ActionListener {
             }
         }
         if (e.getSource() == findORFsButton){
-            ArrayList<ArrayList<String>> startAndStopCodons = new ArrayList<ArrayList<String>>();
-            ArrayList<String> alternativeStartCodons = new ArrayList<String>();
-            ArrayList<String> alternativeStopCodons = new ArrayList<String>();
-            alternativeStartCodons.add("AUG");
-            alternativeStopCodons.add("UAG");
-            alternativeStopCodons.add("UAA");
-            alternativeStopCodons.add("UGA");
-            //Integer minimalORFLength = (Integer) minimalORFLengthComboBox.getSelectedItem();
-            //alternativeStartCodons.addAll(startCodonComboBox.getSelectedItem());
-            //alternativeStopCodons.addAll((Collection<? extends String>) stopCodonComboBox.getSelectedItem());
-            startAndStopCodons.add(alternativeStartCodons);
-            startAndStopCodons.add(alternativeStopCodons);
-            System.out.println(allReadingFrames);
-            orfPredict.getORFs(allReadingFrames.get(0), startAndStopCodons, "+1");
-            orfPredict.getORFs(allReadingFrames.get(1), startAndStopCodons, "+2");
-            orfPredict.getORFs(allReadingFrames.get(2), startAndStopCodons, "+3");
-            orfPredict.getORFs(allReadingFrames.get(3), startAndStopCodons, "-1");
-            orfPredict.getORFs(allReadingFrames.get(4), startAndStopCodons, "-2");
-            orfPredict.getORFs(allReadingFrames.get(5), startAndStopCodons, "-3");
-            Collections.sort(ORFPredictionTool.foundORFs);
+            try {
+                ArrayList<ArrayList<String>> headerResultORFList;
+                headerResultORFList = Database.checkDatabaseORFInfo(headerAndSequence.get(0));
+                if(headerResultORFList.size() == 0){
+                    ArrayList<ArrayList<String>> startAndStopCodons;
+                    ArrayList<String> stopCodons;
+                    ArrayList<String> startCodons;
+                    Integer minimalORFLength = Integer.parseInt(minimalORFLengthComboBox.getSelectedItem().toString());
+                    String selectedStartCodons = startCodonComboBox.getSelectedItem().toString();
+                    String seletedStopCodons = stopCodonComboBox.getSelectedItem().toString();
+                    startCodons = orfPredict.setCodons(selectedStartCodons);
+                    stopCodons = orfPredict.setCodons(seletedStopCodons);
+                    startAndStopCodons = orfPredict.combineStartandStopCodons(startCodons, stopCodons);
+                    System.out.println(allReadingFrames);
+                    orfPredict.getORFs(allReadingFrames.get(0), startAndStopCodons, "+1", minimalORFLength);
+                    orfPredict.getORFs(allReadingFrames.get(1), startAndStopCodons, "+2", minimalORFLength);
+                    orfPredict.getORFs(allReadingFrames.get(2), startAndStopCodons, "+3", minimalORFLength);
+                    orfPredict.getORFs(allReadingFrames.get(3), startAndStopCodons, "-1", minimalORFLength);
+                    orfPredict.getORFs(allReadingFrames.get(4), startAndStopCodons, "-2", minimalORFLength);
+                    orfPredict.getORFs(allReadingFrames.get(5), startAndStopCodons, "-3", minimalORFLength);
+                    Collections.sort(ORFPredictionTool.foundORFs);
+                } else {
+                    findORFsButton.setEnabled(false);
+                    String[][] headerResultORFArray = Database.arraylistToArray(headerResultORFList);
+                    setORFResultsTable(headerResultORFArray);
 
+
+                }
+
+            }catch (ClassNotFoundException ex) {
+
+            } catch (SQLException ex){
+
+            }
         }
         if (e.getSource() == blastButton){
+            try {
+                Database.getDatabaseBLASTInfo(1);
+            }catch (ClassNotFoundException ex ){
 
+            }catch (SQLException ex){
+
+            }
         }
 
     }

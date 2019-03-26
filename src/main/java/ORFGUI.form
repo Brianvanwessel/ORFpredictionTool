@@ -75,7 +75,7 @@
         <properties/>
         <border type="line" title="Results"/>
         <children>
-          <component id="1e395" class="javax.swing.JTextArea" binding="resultArea">
+          <component id="8a8f9" class="javax.swing.JTable" binding="resultsTable">
             <constraints/>
             <properties/>
           </component>

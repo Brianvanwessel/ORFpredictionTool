@@ -3,9 +3,8 @@
  * @Date 22 march 2019
  * @Project ORFFinder GUI
  */
-
 import javax.swing.*;
-import java.awt.event.ActionListener;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -21,7 +20,14 @@ public class ORFGUI extends JFrame {
     protected JButton findORFsButton;
     protected JComboBox chooseGeneComboBox;
     protected JButton blastButton;
-    protected JTextArea resultArea;
     protected JComboBox minimalORFLengthComboBox;
+    protected JTable resultsTable;
+
+    public void setORFResultsTable(String[][] results){
+        String [] column = {"ORF_Start","ORF_Stop","Readingframe"};
+        DefaultTableModel model = new DefaultTableModel(results,column);
+        resultsTable.setModel(model);
+        resultsTable.setVisible(true);
+        }
 
 }
