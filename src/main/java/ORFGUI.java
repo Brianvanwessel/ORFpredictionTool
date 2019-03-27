@@ -5,6 +5,7 @@
  */
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.util.ArrayList;
 
 /**
  *
@@ -18,7 +19,7 @@ public class ORFGUI extends JFrame {
     protected JComboBox startCodonComboBox;
     protected JLabel uploadFileStatusLabel;
     protected JButton findORFsButton;
-    protected JComboBox chooseGeneComboBox;
+    protected JComboBox chooseORFComboBox;
     protected JButton blastButton;
     protected JComboBox minimalORFLengthComboBox;
     protected JTable resultsTable;
@@ -29,5 +30,9 @@ public class ORFGUI extends JFrame {
         resultsTable.setModel(model);
         resultsTable.setVisible(true);
         }
-
+    public void setORFComobox(ArrayList<Integer> usedORFIDS){
+        for (int i = 0;i < usedORFIDS.size();i++){
+            chooseORFComboBox.addItem(usedORFIDS.get(i));
+        }
+    }
 }

@@ -1,3 +1,4 @@
+import java.net.Inet4Address;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -13,7 +14,34 @@ import java.util.logging.Logger;
  * @since 23-03-2019
  */
 public class Database {
+    private static String hostURL = "hannl-hlo-bioinformatica-mysqlsrv.mysql.database.azure.com";
+    private static String port = "3306";
+    private static String databaseName = "owe7_pg5";
+    private static String serverTimezone = "UTC";
+    private static String password = "blaat1234";
 
+
+    /**
+     * The function checkHeader checks if the header from the chosen FASTA file exist in the database, if so it gets the corresponing Sequence_ID
+     * @param inputHeader a string containing the header of the selected FASTA file.
+     * @return sequenceID an Integer containing the sequence ID of the given header.
+     * @throws ClassNotFoundException
+     * @throws SQLException
+     */
+    public static Integer checkHeader(String inputHeader) throws ClassNotFoundException,SQLException{
+        Integer sequenceID = 0;
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection con = DriverManager.getConnection(
+                "jdbc:mysql://"+ hostURL +":"+ port +"/"+ databaseName +"?serverTimezone="+ serverTimezone +"",
+                ""+ databaseName+ "@"+ hostURL +"",
+                ""+password+"");
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery("Select Sequence_ID from sequence where Header like '%"+inputHeader+"%';");
+        while(rs.next()){
+            sequenceID = rs.getInt(1);
+        }
+        return sequenceID;
+    }
     /**
      * The function checkDatabaseInfo makes contact with the owe7_pg5 database. 
      * 
@@ -25,9 +53,9 @@ public class Database {
         ArrayList<ArrayList<String>> headerResultList = new ArrayList<ArrayList<String>>();
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection con = DriverManager.getConnection(
-                "jdbc:mysql://hannl-hlo-bioinformatica-mysqlsrv.mysql.database.azure.com:3306/owe7_pg5?serverTimezone=UTC",
-                "owe7_pg5@hannl-hlo-bioinformatica-mysqlsrv.mysql.database.azure.com",
-                "blaat1234");
+                "jdbc:mysql://"+ hostURL +":"+ port +"/"+ databaseName +"?serverTimezone="+ serverTimezone +"",
+                ""+ databaseName+ "@"+ hostURL +"",
+                ""+password+"");
 
         Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery("select ORF_start, ORF_stop, Reading_frame from orf o\n" +
@@ -72,9 +100,9 @@ public class Database {
         ArrayList<ArrayList<String>> headerResultBLASTList = new ArrayList<ArrayList<String>>();
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection con = DriverManager.getConnection(
-                "jdbc:mysql://hannl-hlo-bioinformatica-mysqlsrv.mysql.database.azure.com:3306/owe7_pg5?serverTimezone=UTC",
-                "owe7_pg5@hannl-hlo-bioinformatica-mysqlsrv.mysql.database.azure.com",
-                "blaat1234");
+                "jdbc:mysql://"+ hostURL +":"+ port +"/"+ databaseName +"?serverTimezone="+ serverTimezone +"",
+                ""+ databaseName+ "@"+ hostURL +"",
+                ""+password+"");
 
         Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery("select BLAST_start, BLAST_stop, Percentage_identity, E_value from blast_results\n" +
@@ -87,6 +115,12 @@ public class Database {
         return headerResultBLASTList;
     }
 
+    /**
+     * The function getHeaderBLASTResults extracts the BLAST results from a resultset.
+     * @param rs a resultset containing the BLAST information for certaing header.
+     * @return
+     * @throws SQLException
+     */
     public static ArrayList<ArrayList<String>> getHeaderBLASTResults(ResultSet rs) throws SQLException {
         ArrayList<ArrayList<String>> headerBLASTResultList = new ArrayList<ArrayList<String>>();
         while (rs.next()) {
@@ -101,22 +135,34 @@ public class Database {
         return headerBLASTResultList;
     }
 
-
     /**
-     * The function arraylistToArray converts an arraylist to an 2D Array.
-     * @param arraylist an arrylist that needs to be converted to an Array.
-     * @return headerResultsArray is an 2D Array that contains the information of the given Arraylist./
+     * The function setAndGetSequence extracts the highest sequence_id and inserts a new Sequence.
+     * @param headerAndSequence is an Arraylist containg an header and sequence.
+     * @return sequenceID an Integer containing the highest sequence_id in the database.
+     * @throws ClassNotFoundException
+     * @throws SQLException
      */
-    public static String[][] arraylistToArray(ArrayList<ArrayList<String>> arraylist){
-        String[][] headerResultsArray = new String[arraylist.size()][];
-        for (int i = 0; i < arraylist.size(); i++) {
-            ArrayList<String> row = arraylist.get(i);
-            headerResultsArray[i] = row.toArray(new String[row.size()]);
+    public static Integer setAndGetSequence(ArrayList<String> headerAndSequence) throws ClassNotFoundException,SQLException{
+        Integer sequenceID = 0;
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection con = DriverManager.getConnection(
+                "jdbc:mysql://"+ hostURL +":"+ port +"/"+ databaseName +"?serverTimezone="+ serverTimezone +"",
+                ""+ databaseName+ "@"+ hostURL +"",
+                ""+password+"");
+
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery("select max(sequence_id) from sequence");
+
+        while(rs.next()){
+            sequenceID = rs.getInt(1);
         }
-        return headerResultsArray;
+        String Sequence = headerAndSequence.get(1);
+        String header = headerAndSequence.get(0);
+        sequenceID += 1;
+        stmt.executeUpdate("insert into sequence(sequence_id, sequence, header) values ("+sequenceID+", '"+Sequence+"', '"+header+"');");
+
+        return sequenceID;
     }
-
-
 
     /**
      * The function insertIntoDatabase inserts the found data in the database.
@@ -124,23 +170,38 @@ public class Database {
      * @throws ClassNotFoundException
      * @throws SQLException
      */
-    public static void insertIntoDatabase(ArrayList<ORF> foundORFS) throws ClassNotFoundException, SQLException{
-        
+    public static ArrayList<Integer> insertORFSIntoDatabase(ArrayList<ORF> foundORFS,Integer sequenceID) throws ClassNotFoundException, SQLException{
+        Integer orfID = 0;
+        Integer orf_start;
+        Integer orf_stop;
+        String readingFrame;
+        ArrayList<Integer> usedORFIDs = new ArrayList<Integer>();
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection con = DriverManager.getConnection(
-                "jdbc:mysql://hannl-hlo-bioinformatica-mysqlsrv.mysql.database.azure.com:3306/owe7_pg5?serverTimezone=UTC",
-                "owe7_pg5@hannl-hlo-bioinformatica-mysqlsrv.mysql.database.azure.com",
-                "blaat1234");
+                "jdbc:mysql://"+ hostURL +":"+ port +"/"+ databaseName +"?serverTimezone="+ serverTimezone +"",
+                ""+ databaseName+ "@"+ hostURL +"",
+                ""+password+"");
 
         Statement stmt = con.createStatement();
-        stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
-        stmt.executeUpdate("insert into sequence(sequence_id, sequence, header) values (10, 'ALJKD', '>B283 chromosoom I');");
-        stmt.executeUpdate("insert into orf(orf_id, orf_start, orf_stop, reading_frame, sequence_id) values (8, 72389, 23982, '+2', 10);\n");
-        stmt.executeUpdate("insert into blast_results(blast_id, blast_stop, blast_start, percentage_identity, e_value, orf_id, gene_id) values (6, 2345, 123, 56, 0.98, 8, 2);");
-        stmt.executeUpdate("insert into gene(gene_id, gene_name, function_id) VALUES (2, 'Hemoglobine', 2);");
-        stmt.executeUpdate("insert into gene_function(function_id, function) VALUES (2, 'zuurstofbindend');");
+        ResultSet rs = stmt.executeQuery("select max(ORF_ID) from ORF");
+        while(rs.next()){
+            orfID = rs.getInt(1);
+        }
+
+        for (int i =0;i<foundORFS.size();i++){
+            orfID+=1;
+            usedORFIDs.add(orfID);
+            orf_start = foundORFS.get(i).getORF_start();
+            orf_stop = foundORFS.get(i).getORF_stop();
+            readingFrame = foundORFS.get(i).getReading_Frame();
+            stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
+            stmt.executeUpdate("insert into orf(orf_id, orf_start, orf_stop, reading_frame, sequence_id) values ("+orfID+", "+orf_start+", "+orf_stop+", '"+readingFrame+"', "+sequenceID+");\n");
+        }
+//        stmt.executeUpdate("insert into blast_results(blast_id, blast_stop, blast_start, percentage_identity, e_value, orf_id, gene_id) values (6, 2345, 123, 56, 0.98, 8, 2);");
+//        stmt.executeUpdate("insert into gene(gene_id, gene_name, function_id) VALUES (2, 'Hemoglobine', 2);");
+//        stmt.executeUpdate("insert into gene_function(function_id, function) VALUES (2, 'zuurstofbindend');");
 
         con.close();
-       
+        return usedORFIDs;
     }
 }

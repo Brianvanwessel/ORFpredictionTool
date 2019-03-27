@@ -3,7 +3,6 @@ import org.biojava.bio.seq.RNATools;
 import org.biojava.bio.symbol.IllegalAlphabetException;
 import org.biojava.bio.symbol.IllegalSymbolException;
 import org.biojava.bio.symbol.SymbolList;
-
 import javax.swing.*;
 import java.io.*;
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ public class ORFPredictionTool {
     /**
      * The function readFile extracts the header and sequence of the chosen FASTA file.
      * @param filepath A String containing the path of the chosen FAST file.
-     * @return headerAndSequence is a Arraylist containg the header and sequeunce of the chosen FASTA file.
+     * @return headerAndSequence is an Arraylist containg an header and sequence.
      * @throws FileNotFoundException
      * @throws IOException
      */
@@ -71,16 +70,16 @@ public class ORFPredictionTool {
     }
 
     /**
-     * The function transcribe transcribes the DNA sequence from the chosen FASTA file.
-     * @param headerAndSequence is an Arraylist containing the header and sequeunce of the chosen FASTA file.
-     * @return RNAseq is a String containg the transcrived DNA sequence from the chosen FASTA file.
+     * The function transcribe transcribes the a DNA sequence.
+     * @param dnaSequence contains the DNA sequence that has to be transcribed.
+     * @return RNAseq is a String containg the transcrived DNA sequence.
      * @throws IllegalSymbolException
      * @throws IllegalAlphabetException
      */
-    public static String transcribe(ArrayList<String> headerAndSequence) throws IllegalSymbolException,IllegalAlphabetException {
+    public static String transcribe(String dnaSequence) throws IllegalSymbolException,IllegalAlphabetException {
         String RNAseq = "";
         try {
-            SymbolList symL = DNATools.createDNA(headerAndSequence.get(1));
+            SymbolList symL = DNATools.createDNA(dnaSequence);
             symL = DNATools.toRNA(symL);
             RNAseq = symL.seqString().toUpperCase();
         } catch (IllegalSymbolException ex) {
@@ -122,6 +121,11 @@ public class ORFPredictionTool {
         return allReadingFrames;
     }
 
+    /**
+     * The function setCodons splits the selectedCodons String to get the Codons that selectedCodons contains and adds the Codons to an Arraylist.
+     * @param selectedCodons A string containing different Codons seprated by ", ".
+     * @return codons an Arraylist containing the Codons that where extracted from  selectedCodons.
+     */
     public static ArrayList<String> setCodons(String selectedCodons){
         ArrayList<String> codons = new ArrayList<String>();
         String[] splitCodons = selectedCodons.split(", ");
@@ -132,6 +136,12 @@ public class ORFPredictionTool {
         return codons;
     }
 
+    /**
+     * The function combineStartandStopCodons combines 2 Arraylist containing start and stop codons into one 2D Arraylist.
+     * @param startCodons an Arraylist containing startcodons.
+     * @param stopCodons an Arraylist containing stopcodons.
+     * @return startAndStopCodons an 2D Arraylist containing 2 Arraylist.
+     */
     public ArrayList<ArrayList<String>> combineStartandStopCodons(ArrayList<String> startCodons,ArrayList<String> stopCodons){
         ArrayList<ArrayList<String>> startAndStopCodons = new ArrayList<ArrayList<String>>();
         startAndStopCodons.add(startCodons);
@@ -171,5 +181,39 @@ public class ORFPredictionTool {
             codonsThirtPosition += 3;
         }
     }
+
+    /**
+     * The function getORFSequence get the sequence that belongs to a certain ORF.
+     * @param selectedORF an ORF object
+     * @param fileSequence is a String containing the DNA sequence of the chosen file.
+     * @return orfSequence a String containg the sequence of the selected ORF.
+     */
+    public String getORFSequence(ORF selectedORF,String fileSequence){
+        StringBuilder fileSequenceBuilder = new StringBuilder();
+        String orfSequence = "";
+        fileSequenceBuilder.append(fileSequence);
+        if(selectedORF.getReading_Frame().contains("-")){
+            fileSequenceBuilder.reverse();
+            orfSequence = fileSequenceBuilder.substring(selectedORF.getORF_start()-1,selectedORF.getORF_stop() -1);
+        } else if(selectedORF.getReading_Frame().contains("+")){
+            orfSequence = fileSequenceBuilder.substring(selectedORF.getORF_start()-1,selectedORF.getORF_stop() -1);
+        }
+        return orfSequence;
+    }
+
+    /**
+     * The function arraylistToArray converts an arraylist to an 2D Array.
+     * @param arraylist an arrylist that needs to be converted to an Array.
+     * @return headerResultsArray is an 2D Array that contains the information of the given Arraylist./
+     */
+    public static String[][] arraylistToArray(ArrayList<ArrayList<String>> arraylist){
+        String[][] headerResultsArray = new String[arraylist.size()][];
+        for (int i = 0; i < arraylist.size(); i++) {
+            ArrayList<String> row = arraylist.get(i);
+            headerResultsArray[i] = row.toArray(new String[row.size()]);
+        }
+        return headerResultsArray;
+    }
+
 }
 
