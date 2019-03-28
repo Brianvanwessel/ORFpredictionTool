@@ -214,6 +214,5 @@ public class ORFPredictionTool {
         }
         return headerResultsArray;
     }
-
 }
 

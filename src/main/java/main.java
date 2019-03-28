@@ -1,5 +1,6 @@
 import org.biojava.bio.symbol.IllegalAlphabetException;
 import org.biojava.bio.symbol.IllegalSymbolException;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -20,8 +21,9 @@ public class main extends ORFGUI implements ActionListener {
     Database database = new Database();
     ArrayList<String> allReadingFrames = new ArrayList<String>();
     ArrayList<String> headerAndSequence = new ArrayList<String>();
-    ArrayList<Integer> usedORFIDS = new ArrayList<Integer>();
+    ArrayList<String> usedORFIDS = new ArrayList<String>();
     String filePath = "";
+
     /**
      * De main function calls all the other fucntions and catches exceptions.
      *
@@ -38,6 +40,7 @@ public class main extends ORFGUI implements ActionListener {
 
     /**
      * The function addListener ads ActionListeners to the ORFGUI frame.
+     *
      * @param frame A ORFGUI frame.
      */
     public void addListener(ORFGUI frame) {
@@ -49,15 +52,16 @@ public class main extends ORFGUI implements ActionListener {
 
     /**
      * The function actionPerformed contains all the logic for the buttons.
+     *
      * @param e an ActionEvent
      */
     public void actionPerformed(ActionEvent e) {
-        if(e.getSource() == zoekFileButton){
+        if (e.getSource() == zoekFileButton) {
             String filePath = orfPredict.chooseFile();
             readFastaField.setText(filePath);
         }
-        if (e.getSource() == uploadFastaButton){
-            try{
+        if (e.getSource() == uploadFastaButton) {
+            try {
                 uploadFileStatusLabel.setText("Uploading");
                 findORFsButton.setEnabled(true);
                 String file = readFastaField.getText();
@@ -66,23 +70,23 @@ public class main extends ORFGUI implements ActionListener {
                 String RNAseq = ORFPredictionTool.transcribe(headerAndSequence.get(1));
                 allReadingFrames.addAll(ORFPredictionTool.getAllReadingFrames(RNAseq));
                 uploadFileStatusLabel.setText("Done");
-            }catch (NotAnValidDNAFASTA ex){
-
+            } catch (NotAnValidDNAFASTA ex) {
+                JOptionPane.showMessageDialog(getParent(),ex );
             } catch (FileNotFoundException ex) {
-
+                JOptionPane.showMessageDialog(getParent(),ex );
             } catch (IOException ex) {
-
-            }catch (IllegalSymbolException ex) {
-
+                JOptionPane.showMessageDialog(getParent(),ex );
+            } catch (IllegalSymbolException ex) {
+                JOptionPane.showMessageDialog(getParent(),ex );
             } catch (IllegalAlphabetException ex) {
-
+                JOptionPane.showMessageDialog(getParent(),ex );
             }
         }
-        if (e.getSource() == findORFsButton){
+        if (e.getSource() == findORFsButton) {
             try {
                 Integer sequenceID = Database.checkHeader(headerAndSequence.get(0));
                 System.out.println(sequenceID);
-                if(sequenceID == 0){
+                if (sequenceID == 0) {
                     ArrayList<ArrayList<String>> startAndStopCodons;
                     ArrayList<String> stopCodons;
                     ArrayList<String> startCodons;
@@ -100,8 +104,11 @@ public class main extends ORFGUI implements ActionListener {
                     orfPredict.getORFs(allReadingFrames.get(4), startAndStopCodons, "-2", minimalORFLength);
                     orfPredict.getORFs(allReadingFrames.get(5), startAndStopCodons, "-3", minimalORFLength);
                     Collections.sort(ORFPredictionTool.foundORFs);
-                    usedORFIDS = Database.insertORFSIntoDatabase(ORFPredictionTool.foundORFs,updatedSequenceID);
+                    usedORFIDS = Database.insertORFSIntoDatabase(ORFPredictionTool.foundORFs, updatedSequenceID);
                     setORFComobox(usedORFIDS);
+                    ArrayList<ArrayList<String>> headerResultORFList =  Database.checkDatabaseORFInfo(headerAndSequence.get(0));
+                    String[][] headerResultORFArray = ORFPredictionTool.arraylistToArray(headerResultORFList);
+                    setORFResultsTable(headerResultORFArray);
                     findORFsButton.setEnabled(false);
                     blastButton.setEnabled(true);
                 } else {
@@ -113,26 +120,26 @@ public class main extends ORFGUI implements ActionListener {
 
                 }
 
-            }catch (ClassNotFoundException ex) {
-                ex.printStackTrace();
+            } catch (ClassNotFoundException ex) {
+                JOptionPane.showMessageDialog(getParent(),ex );
 
-            } catch (SQLException ex){
-                ex.printStackTrace();
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(getParent(),ex );
 
             }
         }
-        if (e.getSource() == blastButton){
+        if (e.getSource() == blastButton) {
             try {
                 Integer selectedORF = Integer.parseInt(chooseORFComboBox.getSelectedItem().toString());
-                Integer startORF = usedORFIDS.get(0);
+                Integer startORF = Integer.parseInt(usedORFIDS.get(0));
                 Integer orfPosition = selectedORF - startORF;
-                String orfSequence = orfPredict.getORFSequence(ORFPredictionTool.foundORFs.get(orfPosition),headerAndSequence.get(1));
-                Database.getDatabaseBLASTInfo(1);
+                String orfSequence = orfPredict.getORFSequence(ORFPredictionTool.foundORFs.get(orfPosition), headerAndSequence.get(1));
+                Database.getDatabaseORFBLASTInfo(1);
                 blastButton.setEnabled(false);
-            }catch (ClassNotFoundException ex ){
-
-            }catch (SQLException ex){
-
+            } catch (ClassNotFoundException ex) {
+                JOptionPane.showMessageDialog(getParent(),ex );
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(getParent(),ex );
             }
         }
 

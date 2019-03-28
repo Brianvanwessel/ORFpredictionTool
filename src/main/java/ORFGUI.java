@@ -1,14 +1,11 @@
-/**
- * @Author Carlijn Fransen
- * @Date 22 march 2019
- * @Project ORFFinder GUI
- */
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.util.ArrayList;
 
 /**
- *
+ * @Author Carlijn Fransen
+ * @Version 1
+ * @Since 1
  */
 public class ORFGUI extends JFrame {
     protected JPanel oRFPredictionToolPanel;
@@ -25,12 +22,13 @@ public class ORFGUI extends JFrame {
     protected JTable resultsTable;
 
     public void setORFResultsTable(String[][] results){
-        String [] column = {"ORF_Start","ORF_Stop","Readingframe"};
+        String [] column = {"ORF_Start","ORF_Stop","Readingframe","ORF_ID"};
         DefaultTableModel model = new DefaultTableModel(results,column);
         resultsTable.setModel(model);
         resultsTable.setVisible(true);
         }
-    public void setORFComobox(ArrayList<Integer> usedORFIDS){
+
+    public void setORFComobox(ArrayList<String> usedORFIDS){
         for (int i = 0;i < usedORFIDS.size();i++){
             chooseORFComboBox.addItem(usedORFIDS.get(i));
         }

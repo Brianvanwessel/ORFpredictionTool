@@ -23,56 +23,58 @@ public class Database {
 
     /**
      * The function checkHeader checks if the header from the chosen FASTA file exist in the database, if so it gets the corresponing Sequence_ID
+     *
      * @param inputHeader a string containing the header of the selected FASTA file.
      * @return sequenceID an Integer containing the sequence ID of the given header.
      * @throws ClassNotFoundException
      * @throws SQLException
      */
-    public static Integer checkHeader(String inputHeader) throws ClassNotFoundException,SQLException{
+    public static Integer checkHeader(String inputHeader) throws ClassNotFoundException, SQLException {
         Integer sequenceID = 0;
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection con = DriverManager.getConnection(
-                "jdbc:mysql://"+ hostURL +":"+ port +"/"+ databaseName +"?serverTimezone="+ serverTimezone +"",
-                ""+ databaseName+ "@"+ hostURL +"",
-                ""+password+"");
+                "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                "" + databaseName + "@" + hostURL + "",
+                "" + password + "");
         Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery("Select Sequence_ID from sequence where Header like '%"+inputHeader+"%';");
-        while(rs.next()){
+        ResultSet rs = stmt.executeQuery("Select Sequence_ID from sequence where Header like '%" + inputHeader + "%';");
+        while (rs.next()) {
             sequenceID = rs.getInt(1);
         }
         return sequenceID;
     }
+
     /**
-     * The function checkDatabaseInfo makes contact with the owe7_pg5 database. 
-     * 
+     * The function checkDatabaseInfo makes contact with the owe7_pg5 database.
+     *
      * @return ResultSet rs, contains the searched data from the database.
      * @throws ClassNotFoundException
      * @throws SQLException
      */
     public static ArrayList<ArrayList<String>> checkDatabaseORFInfo(String inputHeader) throws ClassNotFoundException, SQLException {
-        ArrayList<ArrayList<String>> headerResultList = new ArrayList<ArrayList<String>>();
+        ArrayList<ArrayList<String>> headerResultORFList = new ArrayList<ArrayList<String>>();
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection con = DriverManager.getConnection(
-                "jdbc:mysql://"+ hostURL +":"+ port +"/"+ databaseName +"?serverTimezone="+ serverTimezone +"",
-                ""+ databaseName+ "@"+ hostURL +"",
-                ""+password+"");
+                "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                "" + databaseName + "@" + hostURL + "",
+                "" + password + "");
 
         Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery("select ORF_start, ORF_stop, Reading_frame from orf o\n" +
+        ResultSet rs = stmt.executeQuery("select ORF_start, ORF_stop, Reading_frame, ORF_ID from orf o\n" +
                 "left outer join sequence s on o.Sequence_ID = s.Sequence_ID\n" +
-                "where Header like '%"+inputHeader+"%';");
-        
-        headerResultList = getHeaderORFResults(rs);
+                "where Header like '%" + inputHeader + "%';");
+
+        headerResultORFList = getHeaderORFResults(rs);
 
         con.close();
-        return headerResultList;
+        return headerResultORFList;
     }
 
     /**
      * The function getHeaderResults saves the database results in a Arraylist.
      *
      * @param rs contains the searched data from the database.
-     * @return ArrayList<ArrayList<String>> headerResultList, contains the searched data from the database.
+     * @return ArrayList<ArrayList < String>> headerResultList, contains the searched data from the database.
      * @throws SQLException
      */
     public static ArrayList<ArrayList<String>> getHeaderORFResults(ResultSet rs) throws SQLException {
@@ -83,6 +85,7 @@ public class Database {
             headerORFResult.add(Integer.toString(rs.getInt(1)));
             headerORFResult.add(Integer.toString(rs.getInt(2)));
             headerORFResult.add(rs.getString(3));
+            headerORFResult.add(Integer.toString(rs.getInt(4)));
             headerORFResultList.add(headerORFResult);
         }
         return headerORFResultList;
@@ -90,26 +93,27 @@ public class Database {
 
     /**
      * The fucntion getDatabaseBLASTInfo makes contact with the owe7_pg5 database ands get al BLAST hits for a certain ORF.
+     *
      * @param ORFID The ID of the selected ORF.
      * @return headerResultBLASTList is an 2D Arraylist containing all ORF info for the chosen file.
      * @throws ClassNotFoundException
      * @throws SQLException
      */
-    public static ArrayList<ArrayList<String>> getDatabaseBLASTInfo(Integer ORFID) throws ClassNotFoundException, SQLException {
+    public static ArrayList<ArrayList<String>> getDatabaseORFBLASTInfo(Integer ORFID) throws ClassNotFoundException, SQLException {
         ORFID = 1;
         ArrayList<ArrayList<String>> headerResultBLASTList = new ArrayList<ArrayList<String>>();
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection con = DriverManager.getConnection(
-                "jdbc:mysql://"+ hostURL +":"+ port +"/"+ databaseName +"?serverTimezone="+ serverTimezone +"",
-                ""+ databaseName+ "@"+ hostURL +"",
-                ""+password+"");
+                "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                "" + databaseName + "@" + hostURL + "",
+                "" + password + "");
 
         Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery("select BLAST_start, BLAST_stop, Percentage_identity, E_value from blast_results\n" +
                 "left outer join orf o on blast_results.ORF_ID = o.ORF_ID\n" +
-                "where o.ORF_ID = '"+ORFID+"';");
+                "where o.ORF_ID = '" + ORFID + "';");
 
-        headerResultBLASTList = getHeaderBLASTResults(rs);
+        headerResultBLASTList = getHeaderORFBLASTResults(rs);
 
         con.close();
         return headerResultBLASTList;
@@ -117,11 +121,12 @@ public class Database {
 
     /**
      * The function getHeaderBLASTResults extracts the BLAST results from a resultset.
+     *
      * @param rs a resultset containing the BLAST information for certaing header.
      * @return
      * @throws SQLException
      */
-    public static ArrayList<ArrayList<String>> getHeaderBLASTResults(ResultSet rs) throws SQLException {
+    public static ArrayList<ArrayList<String>> getHeaderORFBLASTResults(ResultSet rs) throws SQLException {
         ArrayList<ArrayList<String>> headerBLASTResultList = new ArrayList<ArrayList<String>>();
         while (rs.next()) {
             ArrayList<String> headerBLASTResult = new ArrayList<String>();
@@ -137,71 +142,148 @@ public class Database {
 
     /**
      * The function setAndGetSequence extracts the highest sequence_id and inserts a new Sequence.
+     *
      * @param headerAndSequence is an Arraylist containg an header and sequence.
      * @return sequenceID an Integer containing the highest sequence_id in the database.
      * @throws ClassNotFoundException
      * @throws SQLException
      */
-    public static Integer setAndGetSequence(ArrayList<String> headerAndSequence) throws ClassNotFoundException,SQLException{
+    public static Integer setAndGetSequence(ArrayList<String> headerAndSequence) throws ClassNotFoundException, SQLException {
         Integer sequenceID = 0;
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection con = DriverManager.getConnection(
-                "jdbc:mysql://"+ hostURL +":"+ port +"/"+ databaseName +"?serverTimezone="+ serverTimezone +"",
-                ""+ databaseName+ "@"+ hostURL +"",
-                ""+password+"");
+                "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                "" + databaseName + "@" + hostURL + "",
+                "" + password + "");
 
         Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery("select max(sequence_id) from sequence");
 
-        while(rs.next()){
+        while (rs.next()) {
             sequenceID = rs.getInt(1);
         }
         String Sequence = headerAndSequence.get(1);
         String header = headerAndSequence.get(0);
         sequenceID += 1;
-        stmt.executeUpdate("insert into sequence(sequence_id, sequence, header) values ("+sequenceID+", '"+Sequence+"', '"+header+"');");
+        stmt.executeUpdate("insert into sequence(sequence_id, sequence, header) values (" + sequenceID + ", '" + Sequence + "', '" + header + "');");
 
         return sequenceID;
     }
 
     /**
-     * The function insertIntoDatabase inserts the found data in the database.
-     * 
+     * The function insertIntoDatabase inserts the found ORF data in the database.
+     *
+     * @param foundORFS  An Arraylist containing the found ORF objects.
+     * @param sequenceID The sequenceID of the chosen file.
+     * @return usedORFIDs An Arraylist containing all the used ORF IDs.
      * @throws ClassNotFoundException
      * @throws SQLException
      */
-    public static ArrayList<Integer> insertORFSIntoDatabase(ArrayList<ORF> foundORFS,Integer sequenceID) throws ClassNotFoundException, SQLException{
+    public static ArrayList<String> insertORFSIntoDatabase(ArrayList<ORF> foundORFS, Integer sequenceID) throws ClassNotFoundException, SQLException {
         Integer orfID = 0;
         Integer orf_start;
         Integer orf_stop;
         String readingFrame;
-        ArrayList<Integer> usedORFIDs = new ArrayList<Integer>();
+        ArrayList<String> usedORFIDs = new ArrayList<String>();
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection con = DriverManager.getConnection(
-                "jdbc:mysql://"+ hostURL +":"+ port +"/"+ databaseName +"?serverTimezone="+ serverTimezone +"",
-                ""+ databaseName+ "@"+ hostURL +"",
-                ""+password+"");
+                "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                "" + databaseName + "@" + hostURL + "",
+                "" + password + "");
 
         Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery("select max(ORF_ID) from ORF");
-        while(rs.next()){
+        while (rs.next()) {
             orfID = rs.getInt(1);
         }
 
-        for (int i =0;i<foundORFS.size();i++){
-            orfID+=1;
-            usedORFIDs.add(orfID);
+        for (int i = 0; i < foundORFS.size(); i++) {
+            orfID += 1;
+            usedORFIDs.add(orfID.toString());
             orf_start = foundORFS.get(i).getORF_start();
             orf_stop = foundORFS.get(i).getORF_stop();
             readingFrame = foundORFS.get(i).getReading_Frame();
             stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
-            stmt.executeUpdate("insert into orf(orf_id, orf_start, orf_stop, reading_frame, sequence_id) values ("+orfID+", "+orf_start+", "+orf_stop+", '"+readingFrame+"', "+sequenceID+");\n");
+            stmt.executeUpdate("insert into orf(orf_id, orf_start, orf_stop, reading_frame, sequence_id) values (" + orfID + ", " + orf_start + ", " + orf_stop + ", '" + readingFrame + "', " + sequenceID + ");\n");
         }
-//        stmt.executeUpdate("insert into blast_results(blast_id, blast_stop, blast_start, percentage_identity, e_value, orf_id, gene_id) values (6, 2345, 123, 56, 0.98, 8, 2);");
-//        stmt.executeUpdate("insert into gene(gene_id, gene_name, function_id) VALUES (2, 'Hemoglobine', 2);");
-//        stmt.executeUpdate("insert into gene_function(function_id, function) VALUES (2, 'zuurstofbindend');");
-
         con.close();
         return usedORFIDs;
+    }
+
+//    /**
+//     * The function insertIntoDatabase inserts the found BLAST data in the database.
+//     * @param foundBLASTResults An Arraylist containing all found BLAST results.
+//     * @param orfID An Arraylist containing the ORFID that has been BLASTED.
+//     * @return  usedBLASTIDS is an Arraylist containing al the used BLAST IDs.
+//     * @throws ClassNotFoundException
+//     * @throws SQLException
+//     */
+//    public static ArrayList<Integer> insertBLASTHitsIntoDatabase(ArrayList<ORF> foundBLASTResults,Integer orfID) throws ClassNotFoundException, SQLException{
+//        Integer blast_ID = 0;
+//        Integer blast_Start;
+//        Integer blast_Stop;
+//        Integer percentage_Identity;
+//        float e_value;
+//        ArrayList<Integer> usedBLASTIDs = new ArrayList<Integer>();
+//        Class.forName("com.mysql.cj.jdbc.Driver");
+//        Connection con = DriverManager.getConnection(
+//                "jdbc:mysql://"+ hostURL +":"+ port +"/"+ databaseName +"?serverTimezone="+ serverTimezone +"",
+//                ""+ databaseName+ "@"+ hostURL +"",
+//                ""+password+"");
+//
+//        Statement stmt = con.createStatement();
+//        ResultSet rs = stmt.executeQuery("select max(BLAST_ID) from blast_results");
+//        while(rs.next()){
+//            blast_ID = rs.getInt(1);
+//        }
+//
+//        for (int i =0;i<foundBLASTResults.size();i++){
+//            blast_ID+=1;
+//            usedBLASTIDs.add(orfID);
+//            blast_Start = foundBLASTResults.get(i).;
+//            blast_Stop = foundBLASTResults.get(i).;
+//            percentage_Identity = foundBLASTResults.get(i).;
+//            e_value = foundBLASTResults.get(i).;
+//            stmt.executeUpdate("insert into blast_results(blast_id, blast_start, blast_stop, percentage_identity, e_value, orf_id) values ("+blast_ID+","+blast_Start+", "+blast_Stop+", "+percentage_Identity+","+e_value+", "+orfID+");");
+//        }
+//
+//        con.close();
+//        return usedBLASTIDs;
+//    }
+
+    public static ArrayList<ArrayList<String>> checkDatabaseInfo(String inputHeader) throws ClassNotFoundException, SQLException {
+        ArrayList<ArrayList<String>> headerResultList = new ArrayList<ArrayList<String>>();
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection con = DriverManager.getConnection(
+                "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                "" + databaseName + "@" + hostURL + "",
+                "" + password + "");
+
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery("select ORF_start, ORF_stop, Reading_frame, BLAST_start, BLAST_stop, Percentage_identity, E_value from blast_results right outer join orf o on blast_results.ORF_ID = o.ORF_ID\n" +
+                "where Header like '%" + inputHeader + "%';");
+
+        headerResultList = getHeaderResults(rs);
+
+        con.close();
+        return headerResultList;
+    }
+
+    public static ArrayList<ArrayList<String>> getHeaderResults(ResultSet rs) throws SQLException {
+        ArrayList<ArrayList<String>> headerResultList = new ArrayList<ArrayList<String>>();
+        while (rs.next()) {
+            ArrayList<String> headerResult = new ArrayList<String>();
+            headerResult.clear();
+            headerResult.add(Integer.toString(rs.getInt(1)));
+            headerResult.add(Integer.toString(rs.getInt(2)));
+            headerResult.add(rs.getString(3));
+            headerResult.add(Integer.toString(rs.getInt(4)));
+            headerResult.add(Integer.toString(rs.getInt(5)));
+            headerResult.add(Integer.toString(rs.getInt(6)));
+            headerResult.add(String.valueOf(Float.parseFloat(rs.getString(7))));
+
+            headerResultList.add(headerResult);
+        }
+        return headerResultList;
     }
 }
