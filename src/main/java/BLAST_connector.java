@@ -1,6 +1,4 @@
 import java.io.*;
-
-import org.biojava.bio.symbol.CodonPrefFilter;
 import org.biojava.nbio.ws.alignment.qblast.BlastProgramEnum;
 import org.biojava.nbio.ws.alignment.qblast.NCBIQBlastAlignmentProperties;
 import org.biojava.nbio.ws.alignment.qblast.NCBIQBlastOutputProperties;

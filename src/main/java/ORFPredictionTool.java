@@ -1,5 +1,4 @@
 import org.biojava.bio.seq.DNATools;
-import org.biojava.bio.seq.RNATools;
 import org.biojava.bio.symbol.IllegalAlphabetException;
 import org.biojava.bio.symbol.IllegalSymbolException;
 import org.biojava.bio.symbol.SymbolList;

@@ -1,18 +1,16 @@
-import java.net.Inet4Address;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Jade van Dinter
  * @author Brian van Wessel
  * @version 1.0
  * @since 23-03-2019
+ * @bugs BLASTING takes a while, Sometimes can`t connect with the Database.
  */
 public class Database {
     private static String hostURL = "hannl-hlo-bioinformatica-mysqlsrv.mysql.database.azure.com";
@@ -44,7 +42,7 @@ public class Database {
                 sequenceID = rs.getInt(1);
             }
         } catch (ClassNotFoundException ex) {
-            throw new ClassNotFoundException();
+            throw new ClassNotFoundException("Fault while interacting with the database");
         } catch (SQLException ex) {
             throw new SQLException("Fault in SQL statment");
         }
@@ -76,7 +74,7 @@ public class Database {
 
             con.close();
         } catch (ClassNotFoundException ex) {
-            throw new ClassNotFoundException();
+            throw new ClassNotFoundException("Fault while interacting with the database");
         } catch (SQLException ex) {
             throw new SQLException("Fault in SQL statment");
         }
@@ -110,7 +108,7 @@ public class Database {
     }
 
     /**
-     * The fucntion getDatabaseBLASTInfo makes contact with the owe7_pg5 database ands get al BLAST hits for a certain ORF.
+     * The function getDatabaseBLASTInfo makes contact with the owe7_pg5 database ands get al BLAST hits for a certain ORF.
      *
      * @param ORFID The ID of the selected ORF.
      * @return headerResultBLASTList is an 2D Arraylist containing all ORF info for the chosen file.
@@ -136,7 +134,7 @@ public class Database {
 
             con.close();
         } catch (ClassNotFoundException ex) {
-            throw new ClassNotFoundException();
+            throw new ClassNotFoundException("Fault while interacting with the database");
         } catch (SQLException ex) {
             throw new SQLException("Fault in SQL server");
         }
@@ -196,7 +194,7 @@ public class Database {
             sequenceID += 1;
             stmt.executeUpdate("insert into sequence(sequence_id, sequence, header) values (" + sequenceID + ", '" + Sequence + "', '" + header + "');");
         } catch (ClassNotFoundException ex) {
-            throw new ClassNotFoundException();
+            throw new ClassNotFoundException("Fault while interacting with the database");
         } catch (SQLException ex) {
             throw new SQLException("Fault in SQL server");
         }
@@ -242,7 +240,7 @@ public class Database {
             }
             con.close();
         } catch (ClassNotFoundException ex) {
-            throw new ClassNotFoundException();
+            throw new ClassNotFoundException("Fault while interacting with the database");
         } catch (SQLException ex) {
             throw new SQLException("Fault in SQL server");
         }
@@ -292,7 +290,7 @@ public class Database {
 
             con.close();
         } catch (ClassNotFoundException ex) {
-            throw new ClassNotFoundException();
+            throw new ClassNotFoundException("Fault while interacting with the database");
         } catch (SQLException ex) {
             throw new SQLException("Fault in SQL server");
         }
@@ -318,7 +316,7 @@ public class Database {
 
             con.close();
         } catch (ClassNotFoundException ex) {
-            throw new ClassNotFoundException();
+            throw new ClassNotFoundException("Fault while interacting with the database");
         } catch (SQLException ex) {
             throw new SQLException("Fault in SQL server");
         }

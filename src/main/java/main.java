@@ -24,7 +24,7 @@ public class main extends ORFGUI implements ActionListener {
     ArrayList<String> usedORFIDS = new ArrayList<String>();
 
     /**
-     * De main function calls all the other fucntions and catches exceptions.
+     * De main function calls all the other functions and catches exceptions.
      *
      * @param args
      */
