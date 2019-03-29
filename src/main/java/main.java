@@ -1,5 +1,7 @@
 import org.biojava.bio.symbol.IllegalAlphabetException;
 import org.biojava.bio.symbol.IllegalSymbolException;
+import org.biojava.nbio.ws.alignment.qblast.NCBIQBlastAlignmentProperties;
+import org.biojava.nbio.ws.alignment.qblast.NCBIQBlastOutputProperties;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -18,11 +20,9 @@ import java.util.Collections;
 public class main extends ORFGUI implements ActionListener {
 
     ORFPredictionTool orfPredict = new ORFPredictionTool();
-    Database database = new Database();
     ArrayList<String> allReadingFrames = new ArrayList<String>();
     ArrayList<String> headerAndSequence = new ArrayList<String>();
     ArrayList<String> usedORFIDS = new ArrayList<String>();
-    String filePath = "";
 
     /**
      * De main function calls all the other fucntions and catches exceptions.
@@ -71,21 +71,20 @@ public class main extends ORFGUI implements ActionListener {
                 allReadingFrames.addAll(ORFPredictionTool.getAllReadingFrames(RNAseq));
                 uploadFileStatusLabel.setText("Done");
             } catch (NotAnValidDNAFASTA ex) {
-                JOptionPane.showMessageDialog(getParent(),ex );
+                JOptionPane.showMessageDialog(getParent(), ex);
             } catch (FileNotFoundException ex) {
-                JOptionPane.showMessageDialog(getParent(),ex );
+                JOptionPane.showMessageDialog(getParent(), ex);
             } catch (IOException ex) {
-                JOptionPane.showMessageDialog(getParent(),ex );
+                JOptionPane.showMessageDialog(getParent(), ex);
             } catch (IllegalSymbolException ex) {
-                JOptionPane.showMessageDialog(getParent(),ex );
+                JOptionPane.showMessageDialog(getParent(), ex);
             } catch (IllegalAlphabetException ex) {
-                JOptionPane.showMessageDialog(getParent(),ex );
+                JOptionPane.showMessageDialog(getParent(), ex);
             }
         }
         if (e.getSource() == findORFsButton) {
             try {
                 Integer sequenceID = Database.checkHeader(headerAndSequence.get(0));
-                System.out.println(sequenceID);
                 if (sequenceID == 0) {
                     ArrayList<ArrayList<String>> startAndStopCodons;
                     ArrayList<String> stopCodons;
@@ -106,7 +105,7 @@ public class main extends ORFGUI implements ActionListener {
                     Collections.sort(ORFPredictionTool.foundORFs);
                     usedORFIDS = Database.insertORFSIntoDatabase(ORFPredictionTool.foundORFs, updatedSequenceID);
                     setORFComobox(usedORFIDS);
-                    ArrayList<ArrayList<String>> headerResultORFList =  Database.checkDatabaseORFInfo(headerAndSequence.get(0));
+                    ArrayList<ArrayList<String>> headerResultORFList = Database.checkDatabaseORFInfo(headerAndSequence.get(0));
                     String[][] headerResultORFArray = ORFPredictionTool.arraylistToArray(headerResultORFList);
                     setORFResultsTable(headerResultORFArray);
                     findORFsButton.setEnabled(false);
@@ -114,17 +113,17 @@ public class main extends ORFGUI implements ActionListener {
                 } else {
                     findORFsButton.setEnabled(false);
                     blastButton.setEnabled(false);
-                    ArrayList<ArrayList<String>> headerResultORFList = Database.checkDatabaseORFInfo(headerAndSequence.get(0));
+                    ArrayList<ArrayList<String>> headerResultORFList = Database.checkDatabaseInfo(headerAndSequence.get(0));
                     String[][] headerResultORFArray = ORFPredictionTool.arraylistToArray(headerResultORFList);
-                    setORFResultsTable(headerResultORFArray);
+                    setALLResultsTable(headerResultORFArray);
 
                 }
 
             } catch (ClassNotFoundException ex) {
-                JOptionPane.showMessageDialog(getParent(),ex );
+                JOptionPane.showMessageDialog(getParent(), ex);
 
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(getParent(),ex );
+                JOptionPane.showMessageDialog(getParent(), ex);
 
             }
         }
@@ -134,12 +133,12 @@ public class main extends ORFGUI implements ActionListener {
                 Integer startORF = Integer.parseInt(usedORFIDS.get(0));
                 Integer orfPosition = selectedORF - startORF;
                 String orfSequence = orfPredict.getORFSequence(ORFPredictionTool.foundORFs.get(orfPosition), headerAndSequence.get(1));
-                Database.getDatabaseORFBLASTInfo(1);
+                Database.getDatabaseORFBLASTInfo(Integer.parseInt(chooseORFComboBox.getSelectedItem().toString()));
                 blastButton.setEnabled(false);
             } catch (ClassNotFoundException ex) {
-                JOptionPane.showMessageDialog(getParent(),ex );
+                JOptionPane.showMessageDialog(getParent(), ex);
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(getParent(),ex );
+                JOptionPane.showMessageDialog(getParent(), ex);
             }
         }
 

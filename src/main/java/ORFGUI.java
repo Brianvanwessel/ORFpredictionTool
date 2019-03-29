@@ -33,4 +33,11 @@ public class ORFGUI extends JFrame {
             chooseORFComboBox.addItem(usedORFIDS.get(i));
         }
     }
+
+    public void setALLResultsTable(String[][] results){
+        String [] column = {"ORF_Start","ORF_Stop","Readingframe","BlAST_start","BLAST_stop","Percentage_identity","E_value"};
+        DefaultTableModel model = new DefaultTableModel(results,column);
+        resultsTable.setModel(model);
+        resultsTable.setVisible(true);
+    }
 }

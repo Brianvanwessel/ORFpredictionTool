@@ -31,15 +31,21 @@ public class Database {
      */
     public static Integer checkHeader(String inputHeader) throws ClassNotFoundException, SQLException {
         Integer sequenceID = 0;
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection con = DriverManager.getConnection(
-                "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
-                "" + databaseName + "@" + hostURL + "",
-                "" + password + "");
-        Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery("Select Sequence_ID from sequence where Header like '%" + inputHeader + "%';");
-        while (rs.next()) {
-            sequenceID = rs.getInt(1);
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                    "" + databaseName + "@" + hostURL + "",
+                    "" + password + "");
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("Select Sequence_ID from sequence where Header like '%" + inputHeader + "%';");
+            while (rs.next()) {
+                sequenceID = rs.getInt(1);
+            }
+        } catch (ClassNotFoundException ex) {
+            throw new ClassNotFoundException();
+        } catch (SQLException ex) {
+            throw new SQLException("Fault in SQL statment");
         }
         return sequenceID;
     }
@@ -53,20 +59,26 @@ public class Database {
      */
     public static ArrayList<ArrayList<String>> checkDatabaseORFInfo(String inputHeader) throws ClassNotFoundException, SQLException {
         ArrayList<ArrayList<String>> headerResultORFList = new ArrayList<ArrayList<String>>();
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection con = DriverManager.getConnection(
-                "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
-                "" + databaseName + "@" + hostURL + "",
-                "" + password + "");
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                    "" + databaseName + "@" + hostURL + "",
+                    "" + password + "");
 
-        Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery("select ORF_start, ORF_stop, Reading_frame, ORF_ID from orf o\n" +
-                "left outer join sequence s on o.Sequence_ID = s.Sequence_ID\n" +
-                "where Header like '%" + inputHeader + "%';");
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("select ORF_start, ORF_stop, Reading_frame, ORF_ID from orf o\n" +
+                    "left outer join sequence s on o.Sequence_ID = s.Sequence_ID\n" +
+                    "where Header like '%" + inputHeader + "%';");
 
-        headerResultORFList = getHeaderORFResults(rs);
+            headerResultORFList = getHeaderORFResults(rs);
 
-        con.close();
+            con.close();
+        } catch (ClassNotFoundException ex) {
+            throw new ClassNotFoundException();
+        } catch (SQLException ex) {
+            throw new SQLException("Fault in SQL statment");
+        }
         return headerResultORFList;
     }
 
@@ -74,19 +86,24 @@ public class Database {
      * The function getHeaderResults saves the database results in a Arraylist.
      *
      * @param rs contains the searched data from the database.
-     * @return ArrayList<ArrayList < String>> headerResultList, contains the searched data from the database.
+     * @return ArrayList<ArrayList   <   String>> headerResultList, contains the searched data from the database.
      * @throws SQLException
      */
     public static ArrayList<ArrayList<String>> getHeaderORFResults(ResultSet rs) throws SQLException {
         ArrayList<ArrayList<String>> headerORFResultList = new ArrayList<ArrayList<String>>();
-        while (rs.next()) {
-            ArrayList<String> headerORFResult = new ArrayList<String>();
-            headerORFResult.clear();
-            headerORFResult.add(Integer.toString(rs.getInt(1)));
-            headerORFResult.add(Integer.toString(rs.getInt(2)));
-            headerORFResult.add(rs.getString(3));
-            headerORFResult.add(Integer.toString(rs.getInt(4)));
-            headerORFResultList.add(headerORFResult);
+        try {
+
+            while (rs.next()) {
+                ArrayList<String> headerORFResult = new ArrayList<String>();
+                headerORFResult.clear();
+                headerORFResult.add(Integer.toString(rs.getInt(1)));
+                headerORFResult.add(Integer.toString(rs.getInt(2)));
+                headerORFResult.add(rs.getString(3));
+                headerORFResult.add(Integer.toString(rs.getInt(4)));
+                headerORFResultList.add(headerORFResult);
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Fault in SQL server");
         }
         return headerORFResultList;
     }
@@ -102,20 +119,26 @@ public class Database {
     public static ArrayList<ArrayList<String>> getDatabaseORFBLASTInfo(Integer ORFID) throws ClassNotFoundException, SQLException {
         ORFID = 1;
         ArrayList<ArrayList<String>> headerResultBLASTList = new ArrayList<ArrayList<String>>();
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection con = DriverManager.getConnection(
-                "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
-                "" + databaseName + "@" + hostURL + "",
-                "" + password + "");
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                    "" + databaseName + "@" + hostURL + "",
+                    "" + password + "");
 
-        Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery("select BLAST_start, BLAST_stop, Percentage_identity, E_value from blast_results\n" +
-                "left outer join orf o on blast_results.ORF_ID = o.ORF_ID\n" +
-                "where o.ORF_ID = '" + ORFID + "';");
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("select BLAST_start, BLAST_stop, Percentage_identity, E_value from blast_results\n" +
+                    "left outer join orf o on blast_results.ORF_ID = o.ORF_ID\n" +
+                    "where o.ORF_ID = '" + ORFID + "';");
 
-        headerResultBLASTList = getHeaderORFBLASTResults(rs);
+            headerResultBLASTList = getHeaderORFBLASTResults(rs);
 
-        con.close();
+            con.close();
+        } catch (ClassNotFoundException ex) {
+            throw new ClassNotFoundException();
+        } catch (SQLException ex) {
+            throw new SQLException("Fault in SQL server");
+        }
         return headerResultBLASTList;
     }
 
@@ -128,14 +151,18 @@ public class Database {
      */
     public static ArrayList<ArrayList<String>> getHeaderORFBLASTResults(ResultSet rs) throws SQLException {
         ArrayList<ArrayList<String>> headerBLASTResultList = new ArrayList<ArrayList<String>>();
-        while (rs.next()) {
-            ArrayList<String> headerBLASTResult = new ArrayList<String>();
-            headerBLASTResult.clear();
-            headerBLASTResult.add(Integer.toString(rs.getInt(1)));
-            headerBLASTResult.add(Integer.toString(rs.getInt(2)));
-            headerBLASTResult.add(Integer.toString(rs.getInt(3)));
-            headerBLASTResult.add(String.valueOf(Float.parseFloat(rs.getString(4))));
-            headerBLASTResultList.add(headerBLASTResult);
+        try {
+            while (rs.next()) {
+                ArrayList<String> headerBLASTResult = new ArrayList<String>();
+                headerBLASTResult.clear();
+                headerBLASTResult.add(Integer.toString(rs.getInt(1)));
+                headerBLASTResult.add(Integer.toString(rs.getInt(2)));
+                headerBLASTResult.add(Integer.toString(rs.getInt(3)));
+                headerBLASTResult.add(String.valueOf(Float.parseFloat(rs.getString(4))));
+                headerBLASTResultList.add(headerBLASTResult);
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Fault in SQL server");
         }
         return headerBLASTResultList;
     }
@@ -150,23 +177,28 @@ public class Database {
      */
     public static Integer setAndGetSequence(ArrayList<String> headerAndSequence) throws ClassNotFoundException, SQLException {
         Integer sequenceID = 0;
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection con = DriverManager.getConnection(
-                "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
-                "" + databaseName + "@" + hostURL + "",
-                "" + password + "");
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                    "" + databaseName + "@" + hostURL + "",
+                    "" + password + "");
 
-        Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery("select max(sequence_id) from sequence");
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("select max(sequence_id) from sequence");
 
-        while (rs.next()) {
-            sequenceID = rs.getInt(1);
+            while (rs.next()) {
+                sequenceID = rs.getInt(1);
+            }
+            String Sequence = headerAndSequence.get(1);
+            String header = headerAndSequence.get(0);
+            sequenceID += 1;
+            stmt.executeUpdate("insert into sequence(sequence_id, sequence, header) values (" + sequenceID + ", '" + Sequence + "', '" + header + "');");
+        } catch (ClassNotFoundException ex) {
+            throw new ClassNotFoundException();
+        } catch (SQLException ex) {
+            throw new SQLException("Fault in SQL server");
         }
-        String Sequence = headerAndSequence.get(1);
-        String header = headerAndSequence.get(0);
-        sequenceID += 1;
-        stmt.executeUpdate("insert into sequence(sequence_id, sequence, header) values (" + sequenceID + ", '" + Sequence + "', '" + header + "');");
-
         return sequenceID;
     }
 
@@ -185,104 +217,146 @@ public class Database {
         Integer orf_stop;
         String readingFrame;
         ArrayList<String> usedORFIDs = new ArrayList<String>();
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection con = DriverManager.getConnection(
-                "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
-                "" + databaseName + "@" + hostURL + "",
-                "" + password + "");
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                    "" + databaseName + "@" + hostURL + "",
+                    "" + password + "");
 
-        Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery("select max(ORF_ID) from ORF");
-        while (rs.next()) {
-            orfID = rs.getInt(1);
-        }
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("select max(ORF_ID) from ORF");
+            while (rs.next()) {
+                orfID = rs.getInt(1);
+            }
 
-        for (int i = 0; i < foundORFS.size(); i++) {
-            orfID += 1;
-            usedORFIDs.add(orfID.toString());
-            orf_start = foundORFS.get(i).getORF_start();
-            orf_stop = foundORFS.get(i).getORF_stop();
-            readingFrame = foundORFS.get(i).getReading_Frame();
-            stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
-            stmt.executeUpdate("insert into orf(orf_id, orf_start, orf_stop, reading_frame, sequence_id) values (" + orfID + ", " + orf_start + ", " + orf_stop + ", '" + readingFrame + "', " + sequenceID + ");\n");
+            for (int i = 0; i < foundORFS.size(); i++) {
+                orfID += 1;
+                usedORFIDs.add(orfID.toString());
+                orf_start = foundORFS.get(i).getORF_start();
+                orf_stop = foundORFS.get(i).getORF_stop();
+                readingFrame = foundORFS.get(i).getReading_Frame();
+                stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
+                stmt.executeUpdate("insert into orf(orf_id, orf_start, orf_stop, reading_frame, sequence_id) values (" + orfID + ", " + orf_start + ", " + orf_stop + ", '" + readingFrame + "', " + sequenceID + ");\n");
+            }
+            con.close();
+        } catch (ClassNotFoundException ex) {
+            throw new ClassNotFoundException();
+        } catch (SQLException ex) {
+            throw new SQLException("Fault in SQL server");
         }
-        con.close();
         return usedORFIDs;
     }
 
-//    /**
-//     * The function insertIntoDatabase inserts the found BLAST data in the database.
-//     * @param foundBLASTResults An Arraylist containing all found BLAST results.
-//     * @param orfID An Arraylist containing the ORFID that has been BLASTED.
-//     * @return  usedBLASTIDS is an Arraylist containing al the used BLAST IDs.
-//     * @throws ClassNotFoundException
-//     * @throws SQLException
-//     */
-//    public static ArrayList<Integer> insertBLASTHitsIntoDatabase(ArrayList<ORF> foundBLASTResults,Integer orfID) throws ClassNotFoundException, SQLException{
-//        Integer blast_ID = 0;
-//        Integer blast_Start;
-//        Integer blast_Stop;
-//        Integer percentage_Identity;
-//        float e_value;
-//        ArrayList<Integer> usedBLASTIDs = new ArrayList<Integer>();
-//        Class.forName("com.mysql.cj.jdbc.Driver");
-//        Connection con = DriverManager.getConnection(
-//                "jdbc:mysql://"+ hostURL +":"+ port +"/"+ databaseName +"?serverTimezone="+ serverTimezone +"",
-//                ""+ databaseName+ "@"+ hostURL +"",
-//                ""+password+"");
-//
-//        Statement stmt = con.createStatement();
-//        ResultSet rs = stmt.executeQuery("select max(BLAST_ID) from blast_results");
-//        while(rs.next()){
-//            blast_ID = rs.getInt(1);
-//        }
-//
-//        for (int i =0;i<foundBLASTResults.size();i++){
-//            blast_ID+=1;
-//            usedBLASTIDs.add(orfID);
-//            blast_Start = foundBLASTResults.get(i).;
-//            blast_Stop = foundBLASTResults.get(i).;
-//            percentage_Identity = foundBLASTResults.get(i).;
-//            e_value = foundBLASTResults.get(i).;
-//            stmt.executeUpdate("insert into blast_results(blast_id, blast_start, blast_stop, percentage_identity, e_value, orf_id) values ("+blast_ID+","+blast_Start+", "+blast_Stop+", "+percentage_Identity+","+e_value+", "+orfID+");");
-//        }
-//
-//        con.close();
-//        return usedBLASTIDs;
-//    }
+    /**
+     * The function insertIntoDatabase inserts the found BLAST data in the database.
+     *
+     * @param foundBLASTResults An Arraylist containing all found BLAST results.
+     * @param orfID             An Arraylist containing the ORFID that has been BLASTED.
+     * @return usedBLASTIDS is an Arraylist containing al the used BLAST IDs.
+     * @throws ClassNotFoundException
+     * @throws SQLException
+     */
+    public static ArrayList<Integer> insertBLASTHitsIntoDatabase(ArrayList<ORF> foundBLASTResults, Integer orfID) throws ClassNotFoundException, SQLException {
+        Integer blast_ID = 0;
+        Integer blast_Start;
+        Integer blast_Stop;
+        Integer percentage_Identity;
+        float e_value;
+        ArrayList<Integer> usedBLASTIDs = new ArrayList<Integer>();
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                    "" + databaseName + "@" + hostURL + "",
+                    "" + password + "");
+
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("select max(BLAST_ID) from blast_results");
+            while (rs.next()) {
+                blast_ID = rs.getInt(1);
+            }
+
+            for (int i = 0; i < foundBLASTResults.size(); i++) {
+                blast_ID += 1;
+                usedBLASTIDs.add(orfID);
+//                blast_Start = foundBLASTResults.get(i).;
+//                blast_Stop = foundBLASTResults.get(i).;
+//                percentage_Identity = foundBLASTResults.get(i).;
+//                e_value = foundBLASTResults.get(i).;
+//                stmt.executeUpdate("insert into blast_results(blast_id, blast_start, blast_stop, percentage_identity, e_value, orf_id) values (" + blast_ID + "," + blast_Start + ", " + blast_Stop + ", " + percentage_Identity + "," + e_value + ", " + orfID + ");");
+            }
+
+            con.close();
+        } catch (ClassNotFoundException ex) {
+            throw new ClassNotFoundException();
+        } catch (SQLException ex) {
+            throw new SQLException("Fault in SQL server");
+        }
+        return usedBLASTIDs;
+    }
 
     public static ArrayList<ArrayList<String>> checkDatabaseInfo(String inputHeader) throws ClassNotFoundException, SQLException {
         ArrayList<ArrayList<String>> headerResultList = new ArrayList<ArrayList<String>>();
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection con = DriverManager.getConnection(
-                "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
-                "" + databaseName + "@" + hostURL + "",
-                "" + password + "");
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://" + hostURL + ":" + port + "/" + databaseName + "?serverTimezone=" + serverTimezone + "",
+                    "" + databaseName + "@" + hostURL + "",
+                    "" + password + "");
 
-        Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery("select ORF_start, ORF_stop, Reading_frame, BLAST_start, BLAST_stop, Percentage_identity, E_value from blast_results right outer join orf o on blast_results.ORF_ID = o.ORF_ID\n" +
-                "where Header like '%" + inputHeader + "%';");
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("select ORF_start, ORF_stop, Reading_frame, BLAST_start, BLAST_stop, Percentage_identity, E_value\n" +
+                    "from blast_results right outer join orf o on blast_results.ORF_ID = o.ORF_ID\n" +
+                    "  RIGHT OUTER JOIN sequence s on o.Sequence_ID = s.Sequence_ID\n" +
+                    "where Header like '%" + inputHeader + "%';");
 
-        headerResultList = getHeaderResults(rs);
+            headerResultList = getHeaderResults(rs);
 
-        con.close();
+            con.close();
+        } catch (ClassNotFoundException ex) {
+            throw new ClassNotFoundException();
+        } catch (SQLException ex) {
+            throw new SQLException("Fault in SQL server");
+        }
         return headerResultList;
     }
 
     public static ArrayList<ArrayList<String>> getHeaderResults(ResultSet rs) throws SQLException {
         ArrayList<ArrayList<String>> headerResultList = new ArrayList<ArrayList<String>>();
-        while (rs.next()) {
-            ArrayList<String> headerResult = new ArrayList<String>();
-            headerResult.clear();
-            headerResult.add(Integer.toString(rs.getInt(1)));
-            headerResult.add(Integer.toString(rs.getInt(2)));
-            headerResult.add(rs.getString(3));
-            headerResult.add(Integer.toString(rs.getInt(4)));
-            headerResult.add(Integer.toString(rs.getInt(5)));
-            headerResult.add(Integer.toString(rs.getInt(6)));
-            headerResult.add(String.valueOf(Float.parseFloat(rs.getString(7))));
+        try {
+            while (rs.next()) {
+                ArrayList<String> headerResult = new ArrayList<String>();
+                headerResult.clear();
+                headerResult.add(Integer.toString(rs.getInt(1)));
+                headerResult.add(Integer.toString(rs.getInt(2)));
+                headerResult.add(rs.getString(3));
+                if (rs.getString(4) == null) {
+                    headerResult.add("-");
+                } else {
+                    headerResult.add(Integer.toString(rs.getInt(4)));
+                }
+                if (rs.getString(5) == null) {
+                    headerResult.add("-");
+                } else {
+                    headerResult.add(Integer.toString(rs.getInt(5)));
+                }
+                if (rs.getString(6) == null) {
+                    headerResult.add("-");
+                } else {
+                    headerResult.add(Integer.toString(rs.getInt(6)));
+                }
+                if (rs.getString(7) == null) {
+                    headerResult.add("-");
+                } else {
+                    headerResult.add(String.valueOf(Float.parseFloat(rs.getString(7))));
+                }
 
-            headerResultList.add(headerResult);
+
+                headerResultList.add(headerResult);
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Fault in SQL server");
         }
         return headerResultList;
     }

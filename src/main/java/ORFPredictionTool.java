@@ -6,9 +6,6 @@ import org.biojava.bio.symbol.SymbolList;
 import javax.swing.*;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-
 /**
  * @author Brian van Wessel <brianvanwessel1@gmail.com>
  * @version 1
@@ -83,10 +80,8 @@ public class ORFPredictionTool {
             symL = DNATools.toRNA(symL);
             RNAseq = symL.seqString().toUpperCase();
         } catch (IllegalSymbolException ex) {
-            //this will happen if you try and make the DNA seq using non IUB symbols
             throw new IllegalSymbolException("Give an valid DNA sequence");
         } catch (IllegalAlphabetException ex) {
-            //this will happen if you try and transcribe a non DNA SymbolList
             throw new IllegalAlphabetException("Give an valid DNA sequence");
         }
         return RNAseq;
