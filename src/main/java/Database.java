@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 /**
  * @author Jade van Dinter
+ * @author Brian van Wessel
  * @version 1.0
  * @since 23-03-2019
  */
@@ -127,7 +128,7 @@ public class Database {
                     "" + password + "");
 
             Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery("select BLAST_start, BLAST_stop, Percentage_identity, E_value from blast_results\n" +
+            ResultSet rs = stmt.executeQuery("select BLAST_start, BLAST_stop, Percentage_identity, E_value, Description from blast_results\n" +
                     "left outer join orf o on blast_results.ORF_ID = o.ORF_ID\n" +
                     "where o.ORF_ID = '" + ORFID + "';");
 
@@ -257,11 +258,12 @@ public class Database {
      * @throws ClassNotFoundException
      * @throws SQLException
      */
-    public static ArrayList<Integer> insertBLASTHitsIntoDatabase(ArrayList<ORF> foundBLASTResults, Integer orfID) throws ClassNotFoundException, SQLException {
+    public static ArrayList<Integer> insertBLASTHitsIntoDatabase(ArrayList<Hit> foundBLASTResults, Integer orfID) throws ClassNotFoundException, SQLException {
         Integer blast_ID = 0;
         Integer blast_Start;
         Integer blast_Stop;
         Integer percentage_Identity;
+        String Description;
         float e_value;
         ArrayList<Integer> usedBLASTIDs = new ArrayList<Integer>();
         try {
@@ -280,11 +282,12 @@ public class Database {
             for (int i = 0; i < foundBLASTResults.size(); i++) {
                 blast_ID += 1;
                 usedBLASTIDs.add(orfID);
-//                blast_Start = foundBLASTResults.get(i).;
-//                blast_Stop = foundBLASTResults.get(i).;
-//                percentage_Identity = foundBLASTResults.get(i).;
-//                e_value = foundBLASTResults.get(i).;
-//                stmt.executeUpdate("insert into blast_results(blast_id, blast_start, blast_stop, percentage_identity, e_value, orf_id) values (" + blast_ID + "," + blast_Start + ", " + blast_Stop + ", " + percentage_Identity + "," + e_value + ", " + orfID + ");");
+                blast_Start = foundBLASTResults.get(i).getBlast_start();
+                blast_Stop = foundBLASTResults.get(i).getBlast_stop();
+                percentage_Identity = foundBLASTResults.get(i).getPct_iden();
+                Description = foundBLASTResults.get(i).getBlast_def();
+                e_value = foundBLASTResults.get(i).getE_val();
+                stmt.executeUpdate("insert into blast_results(blast_id, blast_start, blast_stop, percentage_identity, e_value, Description, orf_id) values (" + blast_ID + "," + blast_Start + ", " + blast_Stop + ", " + percentage_Identity + "," + e_value + ", " + orfID + ");");
             }
 
             con.close();

@@ -1,4 +1,6 @@
 import java.io.*;
+
+import org.biojava.bio.symbol.CodonPrefFilter;
 import org.biojava.nbio.ws.alignment.qblast.BlastProgramEnum;
 import org.biojava.nbio.ws.alignment.qblast.NCBIQBlastAlignmentProperties;
 import org.biojava.nbio.ws.alignment.qblast.NCBIQBlastOutputProperties;
@@ -14,16 +16,8 @@ import java.util.regex.*;
  */
 
 public class BLAST_connector {
-    static ArrayList<Hit> Hitlist = new ArrayList<Hit>();
+    static ArrayList<Hit> hitList = new ArrayList<Hit>();
 
-    public static void main(String[] args) {
-        //String sequence = ORF.getsequence; //TODO Aanpassen op ORF finder class
-        String sequence = "MKWVTFISLLFLFSSAYSRGVFRRDAHKSEVAHRFKDLGEENFKALVLIAFAQYLQQCP"; //TODO Temp
-        NCBIQBlastAlignmentProperties props = settings();
-        NCBIQBlastOutputProperties outputProps = output();
-        ArrayList<String> blastline = connector(sequence, props, outputProps);
-        Result_parser(blastline);
-    }
     /**
      * The function settings, sets the settings for the BLAST
      * @return props is an object containing the setting used for the BLAST
@@ -31,8 +25,8 @@ public class BLAST_connector {
     public static NCBIQBlastAlignmentProperties settings(){
 
         NCBIQBlastAlignmentProperties props = new NCBIQBlastAlignmentProperties();
-        props.setBlastProgram(BlastProgramEnum.blastp); //TODO Aanpassen op inkomende sequentie
-        props.setBlastDatabase("swissprot"); //TODO Aanpassen
+        props.setBlastProgram(BlastProgramEnum.blastx);
+        props.setBlastDatabase("nr");
 
         return props;
     }
@@ -56,7 +50,7 @@ public class BLAST_connector {
      * @throws IOException when there's no internet connection
      * @throws Exception when there are general issues with the BLAST service.
      */
-    public static ArrayList<String> connector(String sequence, NCBIQBlastAlignmentProperties props, NCBIQBlastOutputProperties outputProps) {
+    public static ArrayList<String> connector(String sequence, NCBIQBlastAlignmentProperties props, NCBIQBlastOutputProperties outputProps) throws IOException,Exception{
 
         String line;
         ArrayList<String> blastline = new ArrayList<String>();
@@ -68,7 +62,7 @@ public class BLAST_connector {
             rid = service.sendAlignmentRequest(sequence, props);
 
             while (!service.isReady(rid)) {
-                System.out.println("Wacht 5 seconden");
+                System.out.println("Wait for  5 seconden;BLASTING");
                 Thread.sleep(5000);
             }
 
@@ -79,11 +73,10 @@ public class BLAST_connector {
                 blastline.add(line);
             }
         } catch (IOException I){
-            System.out.println("Geen internet");
+            throw new IOException("No internet connection");
         }
         catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new Exception(e);
         } finally {
             IOUtils.close(reader);
             service.sendDeleteRequest(rid);
@@ -99,7 +92,6 @@ public class BLAST_connector {
      */
 
         public static void Result_parser(ArrayList<String> BLASTline){
-
         int tempid = 0;
             int tempstart = 0;
             int tempstop = 0;
@@ -179,7 +171,7 @@ public class BLAST_connector {
                         tempdef = matcher.group(1);
                     }
                     if (collection == 6){
-                        Hitlist.add(new Hit (tempid,tempstart,tempstop,tempiden,tempevalfloat,tempdef));
+                        hitList.add(new Hit (tempid,tempstart,tempstop,tempiden,tempevalfloat,tempdef));
                         collection=0;
                     }
                 }

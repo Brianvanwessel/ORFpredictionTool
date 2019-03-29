@@ -2,7 +2,6 @@ import org.biojava.bio.symbol.IllegalAlphabetException;
 import org.biojava.bio.symbol.IllegalSymbolException;
 import org.biojava.nbio.ws.alignment.qblast.NCBIQBlastAlignmentProperties;
 import org.biojava.nbio.ws.alignment.qblast.NCBIQBlastOutputProperties;
-
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -86,6 +85,7 @@ public class main extends ORFGUI implements ActionListener {
             try {
                 Integer sequenceID = Database.checkHeader(headerAndSequence.get(0));
                 if (sequenceID == 0) {
+                    ORFPredictionTool.foundORFs.clear();
                     ArrayList<ArrayList<String>> startAndStopCodons;
                     ArrayList<String> stopCodons;
                     ArrayList<String> startCodons;
@@ -133,11 +133,21 @@ public class main extends ORFGUI implements ActionListener {
                 Integer startORF = Integer.parseInt(usedORFIDS.get(0));
                 Integer orfPosition = selectedORF - startORF;
                 String orfSequence = orfPredict.getORFSequence(ORFPredictionTool.foundORFs.get(orfPosition), headerAndSequence.get(1));
+                BLAST_connector.hitList.clear();
+                NCBIQBlastAlignmentProperties props = BLAST_connector.settings();
+                NCBIQBlastOutputProperties outputProps = BLAST_connector.output();
+                ArrayList<String> blastline = BLAST_connector.connector(orfSequence, props, outputProps);
+                BLAST_connector.Result_parser(blastline);
+                Database.insertBLASTHitsIntoDatabase(BLAST_connector.hitList,Integer.parseInt(chooseORFComboBox.getSelectedItem().toString()));
                 Database.getDatabaseORFBLASTInfo(Integer.parseInt(chooseORFComboBox.getSelectedItem().toString()));
                 blastButton.setEnabled(false);
             } catch (ClassNotFoundException ex) {
                 JOptionPane.showMessageDialog(getParent(), ex);
             } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(getParent(), ex);
+            } catch (IOException ex){
+                JOptionPane.showMessageDialog(getParent(), ex);
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(getParent(), ex);
             }
         }
