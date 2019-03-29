@@ -7,6 +7,11 @@ import org.biojava3.core.sequence.io.util.IOUtils;
 import java.util.ArrayList;
 import java.util.regex.*;
 
+/**
+ * @author Bram Lobker
+ * @Version 2.0
+ * @Since 28-03-2019
+ */
 
 public class BLAST_connector {
     static ArrayList<Hit> Hitlist = new ArrayList<Hit>();
@@ -14,44 +19,101 @@ public class BLAST_connector {
     public static void main(String[] args) {
         //String sequence = ORF.getsequence; //TODO Aanpassen op ORF finder class
         String sequence = "MKWVTFISLLFLFSSAYSRGVFRRDAHKSEVAHRFKDLGEENFKALVLIAFAQYLQQCP"; //TODO Temp
-        connector(sequence);
+        NCBIQBlastAlignmentProperties props = settings();
+        NCBIQBlastOutputProperties outputProps = output();
+        ArrayList<String> blastline = connector(sequence, props, outputProps);
+        Result_parser(blastline);
     }
+    /**
+     * The function settings, sets the settings for the BLAST
+     * @return props is an object containing the setting used for the BLAST
+     */
+    public static NCBIQBlastAlignmentProperties settings(){
 
-    public static void connector(String sequence){
-
-        String line;
-        int tempid=0;
-        int tempstart=0;
-        int tempstop=0;
-        String tempeval;
-        double tempevalcalc;
-        float tempevalfloat = 0.0f;
-        int tempiden=0;
-        int blastlinecouner =0;
-        int collection=0;
-        String tempdef = "";
-
-        NCBIQBlastService service = new NCBIQBlastService();
         NCBIQBlastAlignmentProperties props = new NCBIQBlastAlignmentProperties();
         props.setBlastProgram(BlastProgramEnum.blastp); //TODO Aanpassen op inkomende sequentie
         props.setBlastDatabase("swissprot"); //TODO Aanpassen
+
+        return props;
+    }
+    /**
+     * The function output instantiates a NCBIQBlastOutputProperties, which contains the properties for the output.
+     * @return outputProps is an object, containting the properties for the output stream
+     */
+    public static NCBIQBlastOutputProperties output(){
+
         NCBIQBlastOutputProperties outputProps = new NCBIQBlastOutputProperties();
+
+        return outputProps;
+    }
+
+    /**
+     * The function connector parses the sequence to the BLAST service and accepts the Inputstream to save this im an Arraylist.
+     * @param sequence, is a string containing the sequences belonging to the selected ORF.
+     * @param props is an object containing the settings for the BLAST.
+     * @param outputProps is an object containing the properties belonging to the output.
+     * @return BLASTline, an Arraylist which contains all the lines supplied by the outputstream.
+     * @throws IOException when there's no internet connection
+     * @throws Exception when there are general issues with the BLAST service.
+     */
+    public static ArrayList<String> connector(String sequence, NCBIQBlastAlignmentProperties props, NCBIQBlastOutputProperties outputProps) {
+
+        String line;
+        ArrayList<String> blastline = new ArrayList<String>();
+        NCBIQBlastService service = new NCBIQBlastService();
         String rid = null;
         BufferedReader reader = null;
 
-        /* Hier wordt de BLAST request verzonden */
         try {
             rid = service.sendAlignmentRequest(sequence, props);
 
             while (!service.isReady(rid)) {
+                System.out.println("Wacht 5 seconden");
                 Thread.sleep(5000);
             }
 
-            /* Zodra de resultaten binnen zijn worden ze ingelezen*/
             InputStream in = service.getAlignmentResults(rid, outputProps);
             reader = new BufferedReader(new InputStreamReader(in));
 
             while ((line = reader.readLine()) != null) {
+                blastline.add(line);
+            }
+        } catch (IOException I){
+            System.out.println("Geen internet");
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            IOUtils.close(reader);
+            service.sendDeleteRequest(rid);
+        }
+
+        return blastline;
+    }
+
+    /**
+     * The function Result_parser extracts all the required data from the lines supplied by the BLAST output stream and
+     * instantiates Hit objects with this data.
+     * @param BLASTline is an Arraylist containing all the strings supplied by the BLAST outputline.
+     */
+
+        public static void Result_parser(ArrayList<String> BLASTline){
+
+        int tempid = 0;
+            int tempstart = 0;
+            int tempstop = 0;
+            String tempeval;
+            double tempevalcalc;
+            float tempevalfloat = 0.0f;
+            int tempiden = 0;
+            int blastlinecouner = 29;
+            int collection = 0;
+            String tempdef = "";
+            String line;
+
+            for (int i = 0; i < BLASTline.size(); i++) {
+                line = BLASTline.get(i);
                 blastlinecouner +=1;
 
                 if (blastlinecouner >= 30) {
@@ -64,16 +126,16 @@ public class BLAST_connector {
                         collection+=1;
                     }
 
-                    else if (line.contains("Hsp_query-from")){
-                        final Pattern pattern = Pattern.compile("<Hsp_query-from>(.+?)</Hsp_query-from>", Pattern.DOTALL);
+                    else if (line.contains("Hsp_hit-from")){
+                        final Pattern pattern = Pattern.compile("<Hsp_hit-from>(.+?)</Hsp_hit-from>", Pattern.DOTALL);
                         final Matcher matcher = pattern.matcher(line);
                         matcher.find();
                         tempstart=Integer.parseInt(matcher.group(1));
                         collection+=1;
                     }
 
-                    else if (line.contains("Hsp_query-to")){
-                        final Pattern pattern = Pattern.compile("<Hsp_query-to>(.+?)</Hsp_query-to>", Pattern.DOTALL);
+                    else if (line.contains("Hsp_hit-to")){
+                        final Pattern pattern = Pattern.compile("<Hsp_hit-to>(.+?)</Hsp_hit-to>", Pattern.DOTALL);
                         final Matcher matcher = pattern.matcher(line);
                         matcher.find();
                         tempstop=Integer.parseInt(matcher.group(1));
@@ -98,7 +160,7 @@ public class BLAST_connector {
                         if (!tempeval.contains("e")){
                             tempevalfloat = Float.valueOf(tempeval);
                         }
-             
+
                         else{
                         double base = Double.parseDouble(parts[0]);
                         double power= Double.parseDouble(parts[1]);
@@ -116,58 +178,10 @@ public class BLAST_connector {
                         matcher.find();
                         tempdef = matcher.group(1);
                     }
-
-                    if (collection == 5){
+                    if (collection == 6){
                         Hitlist.add(new Hit (tempid,tempstart,tempstop,tempiden,tempevalfloat,tempdef));
                         collection=0;
                     }
                 }
-            }
-        /* */
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        } finally {
-            IOUtils.close(reader);
-            service.sendDeleteRequest(rid);
-        }
-        Hit[] Hitarray = Hitlist.toArray(new Hit[Hitlist.size()]);
-
-
-        /* Test */
-        System.out.println("Blast ID    "+Hitarray[0].getBLAST_ID());
-        System.out.println("BLAST Start "+Hitarray[0].getBLAST_start());
-        System.out.println("Blast Stop  "+Hitarray[0].getBLAST_stop());
-        System.out.println("Blast Iden  "+Hitarray[0].getPct_iden());
-        System.out.println("Blast Eval  "+Hitarray[0].getE_val());
-        System.out.println("Blast Desc  "+Hitarray[0].getBLAST_def());
-        System.out.println("_______________________________");
-        System.out.println("Blast ID    "+Hitarray[1].getBLAST_ID());
-        System.out.println("BLAST Start "+Hitarray[1].getBLAST_start());
-        System.out.println("Blast Stop  "+Hitarray[1].getBLAST_stop());
-        System.out.println("Blast Iden  "+Hitarray[1].getPct_iden());
-        System.out.println("Blast Eval  "+Hitarray[1].getE_val());
-        System.out.println("Blast Desc  "+Hitarray[1].getBLAST_def());
-        System.out.println("_______________________________");
-        System.out.println("Blast ID    "+Hitarray[2].getBLAST_ID());
-        System.out.println("BLAST Start "+Hitarray[2].getBLAST_start());
-        System.out.println("Blast Stop  "+Hitarray[2].getBLAST_stop());
-        System.out.println("Blast Iden  "+Hitarray[2].getPct_iden());
-        System.out.println("Blast Eval  "+Hitarray[2].getE_val());
-        System.out.println("Blast Desc  "+Hitarray[2].getBLAST_def());
-        System.out.println("_______________________________");
-        System.out.println("Blast ID    "+Hitarray[21].getBLAST_ID());
-        System.out.println("BLAST Start "+Hitarray[21].getBLAST_start());
-        System.out.println("Blast Stop  "+Hitarray[21].getBLAST_stop());
-        System.out.println("Blast Iden  "+Hitarray[21].getPct_iden());
-        System.out.println("Blast Eval  "+Hitarray[21].getE_val());
-        System.out.println("Blast Desc  "+Hitarray[21].getBLAST_def());
-
-
-
-
-
-
+            }}
     }
-
-}

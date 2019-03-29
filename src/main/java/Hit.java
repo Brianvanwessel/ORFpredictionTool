@@ -1,27 +1,33 @@
+/**
+ * @author Bram Lobker
+ * @Version 1.0
+ * @Since 22-03-2019
+ */
+
 public class Hit {
 
 
-    public Hit(int BLAST_ID, int BLAST_start, int BLAST_stop, int pct_iden, float e_val, String BLAST_def) {
-        this.BLAST_ID = BLAST_ID;
-        this.BLAST_start = BLAST_start;
-        this.BLAST_stop = BLAST_stop;
+    public Hit(int blast_id, int blast_start, int blast_stop, int pct_iden, float e_val, String blast_def) {
+        this.blast_id = blast_id;
+        this.blast_start = blast_start;
+        this.blast_stop = blast_stop;
         this.pct_iden = pct_iden;
         this.e_val = e_val;
-        this.BLAST_def = BLAST_def;
+        this.blast_def = blast_def;
     }
-    int BLAST_ID;
-    int BLAST_start;
-    int BLAST_stop;
-    int pct_iden;
-    float e_val;
-    String BLAST_def;
+    private int blast_id;
+    private int blast_start;
+    private int blast_stop;
+    private int pct_iden;
+    private float e_val;
+    private String blast_def;
 
-    public String getBLAST_def() {
-        return BLAST_def;
+    public String getBlast_def() {
+        return blast_def;
     }
 
-    public void setBLAST_def(String BLAST_def) {
-        this.BLAST_def = BLAST_def;
+    public void setBlast_def(String blast_def) {
+        this.blast_def = blast_def;
     }
 
     public float getE_val() {return e_val; }
@@ -31,28 +37,28 @@ public class Hit {
     }
 
 
-    public int getBLAST_ID() {
-        return BLAST_ID;
+    public int getBlast_id() {
+        return blast_id;
     }
 
-    public void setBLAST_ID(int BLAST_ID) {
-        this.BLAST_ID = BLAST_ID;
+    public void setBlast_id(int blast_id) {
+        this.blast_id = blast_id;
     }
 
-    public int getBLAST_start() {
-        return BLAST_start;
+    public int getBlast_start() {
+        return blast_start;
     }
 
-    public void setBLAST_start(int BLAST_start) {
-        this.BLAST_start = BLAST_start;
+    public void setBlast_start(int blast_start) {
+        this.blast_start = blast_start;
     }
 
-    public int getBLAST_stop() {
-        return BLAST_stop;
+    public int getBlast_stop() {
+        return blast_stop;
     }
 
-    public void setBLAST_stop(int BLAST_stop) {
-        this.BLAST_stop = BLAST_stop;
+    public void setBlast_stop(int blast_stop) {
+        this.blast_stop = blast_stop;
     }
 
     public int getPct_iden() {
@@ -62,7 +68,4 @@ public class Hit {
     public void setPct_iden(int pct_iden) {
         this.pct_iden = pct_iden;
     }
-
-
-
 }
